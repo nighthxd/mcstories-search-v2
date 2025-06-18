@@ -1,12 +1,10 @@
 // netlify/functions/utils/sharedScraperUtils.js
 const axios = require('axios');
 const cheerio = require('cheerio');
-const excludedLinks = require('../../../excludedLinks');
+const excludedLinks = require('../../excludedLinks');
 
 async function scrapeWebsite(url, searchQuery = '') {
-    // --- ADD THIS LOG LINE HERE ---
     console.log(`Starting scrapeWebsite for URL: ${url} with query: ${searchQuery}`);
-    // --- END LOG LINE ---
 
     try {
         const { data } = await axios.get(url, { timeout: 10000 });
@@ -20,7 +18,9 @@ async function scrapeWebsite(url, searchQuery = '') {
 
             const isAuthorOrTagPage = fullLink.includes('https://mcstories.com/Authors') || fullLink.includes('https://mcstories.com/Tags/');
             const isExcluded = excludedLinks.has(fullLink);
-            const matchesQuery = searchQuery === '' || title.toLowerCase().includes(searchQuery.toLowerCase());
+            // --- REMOVE OR COMMENT OUT THIS LINE ---
+            // const matchesQuery = searchQuery === '' || title.toLowerCase().includes(searchQuery.toLowerCase());
+            // --- AND THIS PART OF THE IF CONDITION ---
 
             const categories = [];
             const storyCodesDiv = $(element).nextAll('.storyCodes').first();
@@ -36,17 +36,16 @@ async function scrapeWebsite(url, searchQuery = '') {
 
             console.log(`Scraped story: "${title}", URL: "${fullLink}", Categories:`, categories);
 
-            if (title && link && !isAuthorOrTagPage && !isExcluded && matchesQuery) {
+            // Modified if condition: removed '&& matchesQuery'
+            if (title && link && !isAuthorOrTagPage && !isExcluded) {
                 stories.push({ title, link: fullLink, categories: categories });
             }
         });
 
-        // --- ADD THIS LOG LINE HERE ---
         console.log(`Finished scrapeWebsite for URL: ${url}. Found ${stories.length} stories.`);
-        // --- END LOG LINE ---
         return stories;
     } catch (error) {
-        console.error(`Error scraping ${url}:`, error); // This log should appear if there's an Axios or Cheerio error
+        console.error(`Error scraping ${url}:`, error);
         return [];
     }
 }
