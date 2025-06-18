@@ -1,6 +1,6 @@
 // netlify/functions/scrape-categories.js
 const { scrapeWebsite } = require('./utils/sharedScraperUtils'); // Adjust path as necessary
-const { tags } = require('../categories'); // Adjust path as necessary
+const { tags } = require('../../categories'); // Adjust path as necessary
 
 exports.handler = async (event, context) => {
     const selectedTags = event.queryStringParameters.tags;
