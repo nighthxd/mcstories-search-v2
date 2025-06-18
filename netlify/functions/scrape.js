@@ -1,11 +1,10 @@
 // netlify/functions/scrape.js
 const axios = require('axios');
-const cheerio = require('cheerio'); // Still used by sharedScraperUtils, but not directly here anymore
-const { searchall } = require('../../categories'); // Corrected path
-const { scrapeWebsite } = require('./utils/sharedScraperUtils'); // Correctly imports updated scrapeWebsite
-const { Pool } = require('pg'); // PostgreSQL client library
+const cheerio = require('cheerio');
+const { searchall } = require('../../categories');
+const { scrapeWebsite } = require('./utils/sharedScraperUtils');
+const { Pool } = require('pg');
 
-// Initialize a connection pool outside the handler
 let pool;
 
 async function ensureDbInitialized() {
@@ -21,7 +20,6 @@ async function ensureDbInitialized() {
             }
         });
 
-        // Test the connection and create 'stories' table if it doesn't exist
         try {
             const client = await pool.connect();
             await client.query(`
@@ -64,7 +62,6 @@ exports.handler = async (event, context) => {
                 seenTitles.add(story.title);
                 uniqueStories.push(story);
 
-                // --- Store/Update story in database ---
                 try {
                     await client.query(
                         `INSERT INTO stories (title, url, categories, synopsis)
@@ -76,12 +73,9 @@ exports.handler = async (event, context) => {
                              last_scraped_at = CURRENT_TIMESTAMP`,
                         [story.title, story.link, story.categories, story.synopsis] // UPDATED: Add story.synopsis
                     );
-                    // cons.log(`Stored/Updated story "${story.title}" in DB.`); // Optional: log each story saved
                 } catch (dbError) {
                     console.error(`Error saving story "${story.title}" to DB:`, dbError.message);
-                    // Continue processing, don't fail the whole function if one story save fails
                 }
-                // --- End DB storage ---
             }
         }
 
@@ -97,7 +91,7 @@ exports.handler = async (event, context) => {
         };
     } finally {
         if (client) {
-            client.release(); // Release client back to the pool
+            client.release();
         }
     }
 };

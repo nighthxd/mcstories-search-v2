@@ -1,12 +1,9 @@
 // search.js
-
 document.addEventListener('DOMContentLoaded', () => {
-    // Optional: Implement theme toggle logic if needed
     const themeToggle = document.getElementById('theme-toggle');
     if (themeToggle) {
         themeToggle.addEventListener('click', () => {
             document.body.classList.toggle('dark-mode');
-            // Save preference to localStorage if desired
             if (document.body.classList.contains('dark-mode')) {
                 localStorage.setItem('theme', 'dark');
             } else {
@@ -14,67 +11,50 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // Apply saved theme on load
         if (localStorage.getItem('theme') === 'dark') {
             document.body.classList.add('dark-mode');
         }
     }
 });
 
-
 async function handleSearchClick() {
     const searchInput = document.getElementById('search-input');
     const query = searchInput.value.trim();
     const resultsContainer = document.getElementById('results-container');
 
-    // Clear previous results
     resultsContainer.innerHTML = 'Loading results...';
 
-    // Collect selected 'include' tags
-    const includeCheckboxes = document.querySelectorAll('input[name="include_tag"]:checked');
+    const includeCheckboxes = document.querySelectorAll('input[name=\"include_tag\"]:checked');
     const includedTags = Array.from(includeCheckboxes).map(cb => cb.value);
 
-    // Collect selected 'exclude' tags
-    const excludeCheckboxes = document.querySelectorAll('input[name="exclude_tag"]:checked');
+    const excludeCheckboxes = document.querySelectorAll('input[name=\"exclude_tag\"]:checked');
     const excludedTags = Array.from(excludeCheckboxes).map(cb => cb.value);
 
-    // Construct the query string for the Netlify function
-    let queryString = '';
+    let apiUrl = includedTags.length > 0 || excludedTags.length > 0
+        ? '/.netlify/functions/scrape-categories?'
+        : '/.netlify/functions/scrape?';
+
+    const params = new URLSearchParams();
+    if (query) {
+        params.append('query', query);
+    }
     if (includedTags.length > 0) {
-        queryString += `tags=${includedTags.join(',')}`;
+        params.append('tags', includedTags.join(','));
     }
     if (excludedTags.length > 0) {
-        // Add '&' if tags are already present, otherwise start with 'exclude_tags'
-        queryString += `${queryString ? '&' : ''}exclude_tags=${excludedTags.join(',')}`;
-    }
-    if (query) {
-        // Add '&' if any tags are already present
-        queryString += `${queryString ? '&' : ''}query=${encodeURIComponent(query)}`;
+        params.append('exclude_tags', excludedTags.join(','));
     }
 
-    // Determine which Netlify function to call
-    // If no tags are selected but a query exists, use 'scrape' for a broader search on the main site.
-    // Otherwise, use 'scrape-categories' for tag-specific searches.
-    let endpoint = '/.netlify/functions/scrape-categories';
-    if (!includedTags.length && !excludedTags.length && query) {
-        endpoint = '/.netlify/functions/scrape';
-    } else if (!includedTags.length && !excludedTags.length && !query) {
-        resultsContainer.innerHTML = '<p>Please select categories, enter a search term, or both to see results.</p>';
-        return;
-    }
-
-
-    const fetchUrl = `${endpoint}?${queryString}`;
-    console.log('Fetching:', fetchUrl); // For debugging
+    apiUrl += params.toString();
 
     try {
-        const response = await fetch(fetchUrl);
+        const response = await fetch(apiUrl);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         const stories = await response.json();
 
-        resultsContainer.innerHTML = ''; // Clear "Loading results..."
+        resultsContainer.innerHTML = '';
 
         if (stories.length === 0) {
             resultsContainer.innerHTML = '<p>No stories found matching your criteria.</p>';
@@ -82,53 +62,74 @@ async function handleSearchClick() {
             const ul = document.createElement('ul');
             stories.forEach(story => {
                 const li = document.createElement('li');
+                li.className = 'story-item'; // Add class for styling
 
-                // Story Header: Title and Categories
-                const storyHeader = document.createElement('div');
-                storyHeader.className = 'story-header';
+                const headerDiv = document.createElement('div');
+                headerDiv.className = 'story-header';
 
-                const titleLink = document.createElement('a');
-                titleLink.href = story.url;
-                titleLink.textContent = story.title;
-                titleLink.target = "_blank"; // Open in new tab
-                storyHeader.appendChild(titleLink);
+                const a = document.createElement('a');
+                a.href = story.url;
+                a.textContent = story.title;
+                a.target = "_blank";
+
+                headerDiv.appendChild(a);
 
                 if (story.categories && story.categories.length > 0) {
                     const categoriesSpan = document.createElement('span');
                     categoriesSpan.className = 'story-categories';
                     categoriesSpan.textContent = ` (${story.categories.join(', ').toLowerCase()})`;
-                    storyHeader.appendChild(categoriesSpan);
+                    headerDiv.appendChild(categoriesSpan);
                 }
-                li.appendChild(storyHeader);
+                li.appendChild(headerDiv);
 
-                // Synopsis (placeholder as backend doesn't provide it yet)
+                // Synopsis display area
                 const synopsisDiv = document.createElement('div');
                 synopsisDiv.className = 'story-synopsis';
-                // Note: The backend does not currently provide synopsis content.
-                // This is a placeholder. You would need to modify your Netlify function(s)
-                // to scrape and return synopsis content for this to be dynamic.
-                synopsisDiv.textContent = 'Synopsis: Content not available yet.';
+                // Initially, display a placeholder or the empty synopsis if available from DB
+                synopsisDiv.textContent = story.synopsis || 'Synopsis: Content not available yet.'; 
                 li.appendChild(synopsisDiv);
 
-                // Buttons
-                const toggleSynopsisButton = document.createElement('button');
-                toggleSynopsisButton.className = 'toggle-synopsis';
-                toggleSynopsisButton.textContent = 'Show Synopsis';
-                toggleSynopsisButton.onclick = () => {
-                    if (synopsisDiv.style.display === 'none' || synopsisDiv.style.display === '') {
-                        synopsisDiv.style.display = 'block';
-                        toggleSynopsisButton.textContent = 'Hide Synopsis';
-                    } else {
+                // Show Synopsis Button
+                const toggleButton = document.createElement('button');
+                toggleButton.className = 'toggle-synopsis';
+                toggleButton.textContent = 'Show Synopsis';
+                toggleButton.setAttribute('data-synopsis-loaded', 'false'); // Custom attribute to track load state
+                toggleButton.onclick = async () => {
+                    if (synopsisDiv.style.display === 'block') {
                         synopsisDiv.style.display = 'none';
-                        toggleSynopsisButton.textContent = 'Show Synopsis';
+                        toggleButton.textContent = 'Show Synopsis';
+                    } else {
+                        synopsisDiv.style.display = 'block';
+                        toggleButton.textContent = 'Hide Synopsis';
+
+                        // Fetch synopsis only if not already loaded or if it's the initial placeholder
+                        if (toggleButton.getAttribute('data-synopsis-loaded') === 'false' || 
+                            synopsisDiv.textContent === 'Synopsis: Content not available yet.') {
+                            synopsisDiv.textContent = 'Loading synopsis...'; // Show loading state
+                            try {
+                                const synopsisResponse = await fetch(`/.netlify/functions/get-synopsis?url=${encodeURIComponent(story.url)}`);
+                                if (!synopsisResponse.ok) {
+                                    throw new Error(`HTTP error! status: ${synopsisResponse.status}`);
+                                }
+                                const data = await synopsisResponse.json();
+                                synopsisDiv.textContent = data.synopsis || 'Failed to retrieve synopsis.';
+                                toggleButton.setAttribute('data-synopsis-loaded', 'true');
+                            } catch (synopsisError) {
+                                console.error('Error fetching synopsis:', synopsisError);
+                                synopsisDiv.textContent = 'Error loading synopsis. Please try again.';
+                            }
+                        }
                     }
                 };
-                li.appendChild(toggleSynopsisButton);
+                li.appendChild(toggleButton);
 
+                // Read More button
                 const readMoreButton = document.createElement('button');
                 readMoreButton.className = 'read-more-button';
-                readMoreButton.textContent = 'Read More';
-                readMoreButton.onclick = () => window.open(story.url, '_blank');
+                readMoreButton.textContent = 'Read Story';
+                readMoreButton.onclick = () => {
+                    window.open(story.url, '_blank');
+                };
                 li.appendChild(readMoreButton);
 
                 ul.appendChild(li);

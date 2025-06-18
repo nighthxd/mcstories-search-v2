@@ -1,12 +1,11 @@
 // netlify/functions/scrape-categories.js
 const axios = require('axios');
 const cheerio = require('cheerio');
-const { tags } = require('../../categories'); // Corrected path
-const { scrapeWebsite } = require('./utils/sharedScraperUtils'); // Corrected path
-const { Pool } = require('pg'); // PostgreSQL client library
+const { tags, searchall } = require('../../categories'); // Ensure searchall is imported if used as fallback
+const { scrapeWebsite } = require('./utils/sharedScraperUtils');
+const { Pool } = require('pg');
 
-// Initialize a connection pool outside the handler
-let pool; // Reusing the global pool variable logic
+let pool;
 
 async function ensureDbInitialized() {
     if (!pool) {
@@ -21,7 +20,6 @@ async function ensureDbInitialized() {
             }
         });
 
-        // Test the connection and create 'stories' table if it doesn't exist
         try {
             const client = await pool.connect();
             await client.query(`
@@ -56,26 +54,21 @@ exports.handler = async (event, context) => {
         client = await dbPool.connect();
 
         let storiesFromDb = [];
-        // First, try to fetch from DB cache based on tags and query
         if (includedTags.length > 0 || excludedTags.length > 0 || searchQuery) {
-            // Build dynamic WHERE clause for categories and search query
             let whereClauses = [];
             let queryParams = [];
             let paramIndex = 1;
 
-            // Handle included tags
             if (includedTags.length > 0) {
                 whereClauses.push(`categories @> $${paramIndex++}::text[]`);
                 queryParams.push(includedTags);
             }
 
-            // Handle excluded tags
             if (excludedTags.length > 0) {
                 whereClauses.push(`NOT (categories && $${paramIndex++}::text[])`);
                 queryParams.push(excludedTags);
             }
 
-            // Handle search query for title
             if (searchQuery) {
                 whereClauses.push(`title ILIKE $${paramIndex++}`);
                 queryParams.push(`%${searchQuery}%`);
@@ -84,6 +77,7 @@ exports.handler = async (event, context) => {
             const whereClause = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
 
             console.log(`Cache query for tags: ${includedTags.join(',')} query: ${searchQuery} exclude: ${excludedTags.join(',')}`);
+            // Ensure synopsis is selected from DB
             const dbResponse = await client.query(`SELECT title, url, categories, synopsis FROM stories ${whereClause} ORDER BY last_scraped_at DESC LIMIT 100`, queryParams);
             storiesFromDb = dbResponse.rows;
             console.log(`Database rows found for cache: ${storiesFromDb.length}`);
@@ -97,7 +91,6 @@ exports.handler = async (event, context) => {
             }
         }
 
-        // If no cache hit, proceed with scraping
         console.log("No cache hit or empty query, proceeding with scraping.");
 
         const urlsToScrape = includedTags.length > 0
@@ -109,13 +102,12 @@ exports.handler = async (event, context) => {
         let allStories = resultsPerUrl.flat();
 
         const uniqueStories = [];
-        const seenLinks = new Set(); // Use Set for efficient checking of unique links
+        const seenLinks = new Set();
 
         for (const story of allStories) {
             if (!seenLinks.has(story.link)) {
                 seenLinks.add(story.link);
 
-                // Apply filtering for included/excluded tags and search query
                 const hasIncludedTags = includedTags.length === 0 || includedTags.every(tag => story.categories.includes(tag));
                 const hasExcludedTags = excludedTags.length > 0 && excludedTags.some(tag => story.categories.includes(tag));
                 const matchesSearchQuery = searchQuery === '' || story.title.toLowerCase().includes(searchQuery.toLowerCase());
@@ -123,7 +115,6 @@ exports.handler = async (event, context) => {
                 if (hasIncludedTags && !hasExcludedTags && matchesSearchQuery) {
                     uniqueStories.push(story);
 
-                    // --- Store/Update story in database ---
                     try {
                         await client.query(
                             `INSERT INTO stories (title, url, categories, synopsis)
@@ -135,23 +126,18 @@ exports.handler = async (event, context) => {
                                  last_scraped_at = CURRENT_TIMESTAMP`,
                             [story.title, story.link, story.categories, story.synopsis] // UPDATED: Add story.synopsis
                         );
-                        // console.log(`Stored/Updated story "${story.title}" in DB.`); // Optional: log each story saved
                     } catch (dbError) {
                         console.error(`Error saving story "${story.title}" to DB:`, dbError.message);
-                        // Continue processing, don't fail the whole function if one story save fails
                     }
-                    // --- End DB storage ---\
                 }
             }
         }
         
-        // Fin filter to ensure excluded tags are handled if allStories didn't catch them
         const finalUniqueStories = uniqueStories.filter(story => {
             const matchesSearchQuery = searchQuery === '' || story.title.toLowerCase().includes(searchQuery.toLowerCase());
             const passesExcludedFilter = excludedTags.length === 0 || !excludedTags.some(tag => story.categories.includes(tag));
             return matchesSearchQuery && passesExcludedFilter;
         });
-
 
         return {
             statusCode: 200,
@@ -165,7 +151,7 @@ exports.handler = async (event, context) => {
         };
     } finally {
         if (client) {
-            client.release(); // Release client back to the pool
+            client.release();
         }
     }
 };
