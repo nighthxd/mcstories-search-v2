@@ -1,7 +1,7 @@
 // netlify/functions/scrape-categories.js
 const axios = require('axios');
 const cheerio = require('cheerio');
-const { tags, searchall } = require('../../categories'); // Ensure searchall is imported if used as fallback
+const { tags, searchall } = require('../../categories');
 const { scrapeWebsite } = require('./utils/sharedScraperUtils');
 const { Pool } = require('pg');
 
@@ -28,7 +28,7 @@ async function ensureDbInitialized() {
                     title TEXT NOT NULL,
                     url TEXT UNIQUE NOT NULL,
                     categories TEXT[],
-                    synopsis TEXT,               -- ADDED: Synopsis column
+                    synopsis TEXT,
                     last_scraped_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
                 );
             `);
@@ -37,98 +37,107 @@ async function ensureDbInitialized() {
         } catch (err) {
             console.error('Failed to connect to DB or create "stories" table:', err);
             pool = null;
-            throw new Error('Database initialization for stories failed.');
+            throw new Error('Database initialization for stories failed...');
         }
     }
     return pool;
 }
 
 exports.handler = async (event, context) => {
-    const includedTags = event.queryStringParameters.tags ? event.queryStringParameters.tags.split(',') : [];
-    const excludedTags = event.queryStringParameters.exclude_tags ? event.queryStringParameters.exclude_tags.split(',') : [];
-    const searchQuery = event.queryStringParameters.query || '';
+    // Allows CORS for local development
+    if (event.httpMethod === 'OPTIONS') {
+        return {
+            statusCode: 200,
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'GET, POST',
+                'Access-Control-Allow-Headers': 'Content-Type',
+            },
+            body: '',
+        };
+    }
+
+    let includedTags = [];
+    let excludedTags = [];
+    let searchQuery = '';
+
+    if (event.queryStringParameters) {
+        if (event.queryStringParameters.categories) {
+            includedTags = event.queryStringParameters.categories.split(',');
+        }
+        if (event.queryStringParameters.excludedCategories) {
+            excludedTags = event.queryStringParameters.excludedCategories.split(',');
+        }
+        if (event.queryStringParameters.query) {
+            searchQuery = event.queryStringParameters.query;
+        }
+    }
+
     let client;
 
     try {
-        const dbPool = await ensureDbInitialized();
-        client = await dbPool.connect();
+        const pool = await ensureDbInitialized();
+        client = await pool.connect();
 
-        let storiesFromDb = [];
-        if (includedTags.length > 0 || excludedTags.length > 0 || searchQuery) {
-            let whereClauses = [];
-            let queryParams = [];
-            let paramIndex = 1;
+        // 1. Check cache for specific tags and query
+        const cachedStoriesResult = await client.query(
+            `SELECT title, url, categories, synopsis FROM stories
+             WHERE categories @> $1
+             AND ($2 = '' OR title ILIKE '%' || $2 || '%')
+             AND NOT (categories && $3)
+             AND last_scraped_at > NOW() - INTERVAL '1 hour'`, // Removed LIMIT 100
+            [includedTags, searchQuery, excludedTags]
+        );
 
-            if (includedTags.length > 0) {
-                whereClauses.push(`categories @> $${paramIndex++}::text[]`);
-                queryParams.push(includedTags);
-            }
-
-            if (excludedTags.length > 0) {
-                whereClauses.push(`NOT (categories && $${paramIndex++}::text[])`);
-                queryParams.push(excludedTags);
-            }
-
-            if (searchQuery) {
-                whereClauses.push(`title ILIKE $${paramIndex++}`);
-                queryParams.push(`%${searchQuery}%`);
-            }
-
-            const whereClause = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
-
+        if (cachedStoriesResult.rows.length > 0) {
             console.log(`Cache query for tags: ${includedTags.join(',')} query: ${searchQuery} exclude: ${excludedTags.join(',')}`);
-            // Ensure synopsis is selected from DB
-            const dbResponse = await client.query(`SELECT title, url, categories, synopsis FROM stories ${whereClause} ORDER BY last_scraped_at DESC LIMIT 100`, queryParams);
-            storiesFromDb = dbResponse.rows;
-            console.log(`Database rows found for cache: ${storiesFromDb.length}`);
-
-            if (storiesFromDb.length > 0) {
-                console.log(`Returning ${storiesFromDb.length} stories from cache for tags: "${includedTags.join(',')}" and query: "${searchQuery}"`);
-                return {
-                    statusCode: 200,
-                    body: JSON.stringify(storiesFromDb),
-                };
-            }
+            console.log(`Database rows found for cache: ${cachedStoriesResult.rows.length}`);
+            console.log(`Returning ${cachedStoriesResult.rows.length} stories from cache for tags: "${includedTags.join(',')}" and query: "${searchQuery}"`);
+            return {
+                statusCode: 200,
+                body: JSON.stringify(cachedStoriesResult.rows),
+            };
         }
 
-        console.log("No cache hit or empty query, proceeding with scraping.");
+        console.log(`No fresh cache for tags: ${includedTags.join(',')} and query: "${searchQuery}". Initiating scrape.`);
 
-        const urlsToScrape = includedTags.length > 0
-            ? includedTags.map(tag => `https://mcstories.com/Tags/${tag}.html`)
-            : searchall; // Fallback to searchall if no specific tags
+        let urlsToScrape = [];
+        if (includedTags.length > 0) {
+            includedTags.forEach(tag => {
+                if (tags[tag]) {
+                    urlsToScrape.push(tags[tag]);
+                }
+            });
+        } else {
+            urlsToScrape.push(searchall);
+        }
 
-        const scrapePromises = urlsToScrape.map(url => scrapeWebsite(url, searchQuery));
-        const resultsPerUrl = await Promise.all(scrapePromises);
-        let allStories = resultsPerUrl.flat();
+        let allStories = [];
+        for (const url of urlsToScrape) {
+            const scraped = await scrapeWebsite(url, searchQuery);
+            allStories = allStories.concat(scraped);
+        }
 
         const uniqueStories = [];
-        const seenLinks = new Set();
-
+        const seenTitles = new Set();
         for (const story of allStories) {
-            if (!seenLinks.has(story.link)) {
-                seenLinks.add(story.link);
+            if (!seenTitles.has(story.title)) {
+                seenTitles.add(story.title);
+                uniqueStories.push(story);
 
-                const hasIncludedTags = includedTags.length === 0 || includedTags.every(tag => story.categories.includes(tag));
-                const hasExcludedTags = excludedTags.length > 0 && excludedTags.some(tag => story.categories.includes(tag));
-                const matchesSearchQuery = searchQuery === '' || story.title.toLowerCase().includes(searchQuery.toLowerCase());
-
-                if (hasIncludedTags && !hasExcludedTags && matchesSearchQuery) {
-                    uniqueStories.push(story);
-
-                    try {
-                        await client.query(
-                            `INSERT INTO stories (title, url, categories, synopsis)
-                             VALUES ($1, $2, $3, $4)
-                             ON CONFLICT (url) DO UPDATE SET
-                                 title = EXCLUDED.title,
-                                 categories = EXCLUDED.categories,
-                                 synopsis = EXCLUDED.synopsis, -- UPDATED: Also update synopsis
-                                 last_scraped_at = CURRENT_TIMESTAMP`,
-                            [story.title, story.link, story.categories, story.synopsis] // UPDATED: Add story.synopsis
-                        );
-                    } catch (dbError) {
-                        console.error(`Error saving story "${story.title}" to DB:`, dbError.message);
-                    }
+                try {
+                    await client.query(
+                        `INSERT INTO stories (title, url, categories, synopsis)
+                         VALUES ($1, $2, $3, $4)
+                         ON CONFLICT (url) DO UPDATE SET
+                             title = EXCLUDED.title,
+                             categories = EXCLUDED.categories,
+                             synopsis = EXCLUDED.synopsis,
+                             last_scraped_at = CURRENT_TIMESTAMP`,
+                        [story.title, story.link, story.categories, story.synopsis]
+                    );
+                } catch (dbError) {
+                    console.error(`Error saving story "${story.title}" to DB:`, dbError.message);
                 }
             }
         }
