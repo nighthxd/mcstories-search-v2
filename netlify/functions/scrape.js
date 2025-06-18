@@ -1,10 +1,11 @@
 // netlify/functions/scrape.js
 const axios = require('axios');
-const cheerio = require('cheerio');
-const { searchall } = require('../../categories');
-const { scrapeWebsite } = require('./utils/sharedScraperUtils');
-const { Pool } = require('pg');
+const cheerio = require('cheerio'); // Still used by sharedScraperUtils, but not directly here anymore
+const { searchall } = require('../../categories'); // Corrected path
+const { scrapeWebsite } = require('./utils/sharedScraperUtils'); // Correctly imports updated scrapeWebsite
+const { Pool } = require('pg'); // PostgreSQL client library
 
+// Initialize a connection pool outside the handler
 let pool;
 
 async function ensureDbInitialized() {
@@ -20,6 +21,7 @@ async function ensureDbInitialized() {
             }
         });
 
+        // Test the connection and create 'stories' table if it doesn't exist
         try {
             const client = await pool.connect();
             await client.query(`
@@ -28,6 +30,7 @@ async function ensureDbInitialized() {
                     title TEXT NOT NULL,
                     url TEXT UNIQUE NOT NULL,
                     categories TEXT[],
+                    synopsis TEXT,               -- ADDED: Synopsis column
                     last_scraped_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
                 );
             `);
@@ -61,19 +64,24 @@ exports.handler = async (event, context) => {
                 seenTitles.add(story.title);
                 uniqueStories.push(story);
 
+                // --- Store/Update story in database ---
                 try {
                     await client.query(
-                        `INSERT INTO stories (title, url, categories)
-                         VALUES ($1, $2, $3)
+                        `INSERT INTO stories (title, url, categories, synopsis)
+                         VALUES ($1, $2, $3, $4)
                          ON CONFLICT (url) DO UPDATE SET
                              title = EXCLUDED.title,
                              categories = EXCLUDED.categories,
+                             synopsis = EXCLUDED.synopsis, -- UPDATED: Also update synopsis
                              last_scraped_at = CURRENT_TIMESTAMP`,
-                        [story.title, story.link, story.categories]
+                        [story.title, story.link, story.categories, story.synopsis] // UPDATED: Add story.synopsis
                     );
+                    // console.log(`Stored/Updated story "${story.title}" in DB.`); // Optional: log each story saved
                 } catch (dbError) {
                     console.error(`Error saving story "${story.title}" to DB:`, dbError.message);
+                    // Continue processing, don't fail the whole function if one story save fails
                 }
+                // --- End DB storage ---
             }
         }
 
@@ -89,7 +97,7 @@ exports.handler = async (event, context) => {
         };
     } finally {
         if (client) {
-            client.release();
+            client.release(); // Release client back to the pool
         }
     }
 };

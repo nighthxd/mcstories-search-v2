@@ -17,7 +17,7 @@ header, hgroup, main, nav, section, summary {
     --border-color: #0056b3; /* Existing, used for results/categories borders */
     --link-color: black; /* From original a:link */
     --link-hover-bg: rgba(72, 61, 139, 0.75); /* From original a:hover */
-    --button-bg: #007bff; /* Existing green */
+    --button-bg: #007bff; /* Existing blue */
     --button-text: white; /* Existing */
     --button-hover-bg: #0056b3; /* Existing */
     --input-bg: #f9f9f9; /* Existing */
@@ -124,7 +124,7 @@ body.dark-mode #theme-toggle::before { content: '🌙'; } /* Moon icon for dark 
 .search-container {
     display: flex;
     margin-bottom: 20px;
-    border: 1px solid var(--border-color); /* Blue border */
+    border: 1px solid var(--border-color); /* Blue border added back */
     padding: 15px;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -158,7 +158,7 @@ body.dark-mode #theme-toggle::before { content: '🌙'; } /* Moon icon for dark 
     background-color: var(--button-hover-bg);
 }
 
-/* Category Filter Table Styling (for two columns) */
+/* Category Filter Table Container */
 .category-filter-table {
     border: 1px solid var(--border-color); /* Blue border for the whole box */
     padding: 15px; /* Padding inside the box */
@@ -166,26 +166,36 @@ body.dark-mode #theme-toggle::before { content: '🌙'; } /* Moon icon for dark 
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     background-color: var(--container-bg); /* Match body-container background */
+    transition: background-color 0.3s, border-color 0.3s;
+}
 
-    /* Two-column layout for categories - applies to the content within the div */
-    /* This uses CSS columns for block-level elements, which can be tricky with tables. */
-    /* It might cause table headers to repeat or cells to break across columns. */
-    /* For true table column splitting, HTML structure changes would be ideal. */
-    column-count: 2;
-    column-gap: 40px; /* Space between columns */
+/* New wrapper for two tables using Flexbox */
+.category-tables-wrapper {
+    display: flex;
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    justify-content: space-around; /* Distribute space between tables */
+    gap: 20px; /* Space between the two tables */
 }
 
 .category-filter-table table {
-    width: 100%; /* Ensure table fills its column */
-    border-collapse: collapse; /* Remove double borders */
-    break-inside: avoid-column; /* Try to keep table intact within a column */
-    margin-bottom: 20px; /* Space between tables if they wrap */
+    width: 100%; /* Default to full width for small screens */
+    max-width: 45%; /* Each table takes roughly half the width on larger screens */
+    flex: 1 1 45%; /* Grow, shrink, base width for flex items */
+    border-collapse: collapse;
+    border: none; /* No outer table border */
+}
+
+@media (max-width: 768px) {
+    .category-filter-table table {
+        max-width: 100%; /* Stack tables on smaller screens */
+        flex: 1 1 100%;
+    }
 }
 
 .category-filter-table th,
 .category-filter-table td {
     padding: 8px 10px;
-    border: 1px solid var(--border-color); /* Cell borders */
+    border: none; /* No cell borders */
     text-align: left;
     vertical-align: top;
     background-color: var(--container-bg); /* Ensure consistent background */
@@ -195,6 +205,7 @@ body.dark-mode #theme-toggle::before { content: '🌙'; } /* Moon icon for dark 
     background-color: var(--button-hover-bg); /* Darker header background */
     color: white;
     font-weight: bold;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3); /* Slight separator for header */
 }
 
 /* Ensure labels and checkboxes align nicely */
@@ -211,24 +222,33 @@ body.dark-mode #theme-toggle::before { content: '🌙'; } /* Moon icon for dark 
 
 /* Results Container */
 #results-container {
-    border: 1px solid var(--border-color); /* Blue border */
+    border: 1px solid var(--border-color); /* Blue border added back */
     padding: 15px;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     background-color: var(--container-bg); /* Match body-container background */
+    text-align: center; /* Center block elements inside */
 }
 
 #results-container ul {
     list-style: none;
     padding: 0;
+    /* Optional: If li elements don't center, make ul a flex container */
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center list items horizontally */
 }
 
 #results-container li {
-    background-color: var(--input-bg); /* Light background for each result item */
+    background-color: var(--input-bg);
     border: 1px solid var(--input-border);
     border-radius: 5px;
     margin-bottom: 10px;
     padding: 10px;
+    max-width: 700px; /* Limit width of individual result items */
+    width: 100%; /* Ensure it takes available width up to max-width */
+    box-sizing: border-box; /* Include padding/border in width */
+    text-align: left; /* Reset text alignment for content inside li */
     transition: background-color 0.3s, border-color 0.3s;
 }
 
@@ -269,6 +289,12 @@ body.dark-mode #theme-toggle::before { content: '🌙'; } /* Moon icon for dark 
     padding-left: 10px;
     border-left: 2px solid var(--border-color);
     display: none; /* Hidden by default */
+    background-color: var(--container-bg); /* Slightly different background for synopsis */
+    padding: 8px;
+    border-radius: 4px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    transition: background-color 0.3s;
 }
 
 .toggle-synopsis, .read-more-button {
