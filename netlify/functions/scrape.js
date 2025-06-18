@@ -1,29 +1,87 @@
-// netlify/functions/scrape.js (or wherever your functions are)
-const { scrapeWebsite } = require('./utils/sharedScraperUtils'); // Adjust path as necessary
-const { searchall } = require('../../categories'); // Adjust path as necessary
+// netlify/functions/scrape.js
+const axios = require('axios');
+const cheerio = require('cheerio'); // Still used by sharedScraperUtils, but not directly here anymore
+const { searchall } = require('../../categories'); // Corrected path
+const { scrapeWebsite } = require('./utils/sharedScraperUtils'); // Correctly imports updated scrapeWebsite
+const { Pool } = require('pg'); // PostgreSQL client library
+
+// Initialize a connection pool outside the handler
+let pool;
+
+async function ensureDbInitialized() {
+    if (!pool) {
+        if (!process.env.NETLIFY_DATABASE_URL) {
+            throw new Error('NETLIFY_DATABASE_URL environment variable is not set.');
+        }
+
+        pool = new Pool({
+            connectionString: process.env.NETLIFY_DATABASE_URL,
+            ssl: {
+                rejectUnauthorized: false
+            }
+        });
+
+        // Test the connection and create 'stories' table if it doesn't exist
+        try {
+            const client = await pool.connect();
+            await client.query(`
+                CREATE TABLE IF NOT EXISTS stories (
+                    id SERIAL PRIMARY KEY,
+                    title TEXT NOT NULL,
+                    url TEXT UNIQUE NOT NULL,
+                    categories TEXT[],
+                    last_scraped_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+                );
+            `);
+            console.log('Database table "stories" ensured to exist.');
+            client.release();
+        } catch (err) {
+            console.error('Failed to connect to DB or create "stories" table:', err);
+            pool = null; // Invalidate pool if initialization failed
+            throw new Error('Database initialization for stories failed.');
+        }
+    }
+    return pool;
+}
 
 exports.handler = async (event, context) => {
     const searchQuery = event.queryStringParameters.query || '';
+    let client; // Declare client for finally block
 
     try {
-        // Create an array of promises, each representing a scrape operation
+        const dbPool = await ensureDbInitialized();
+        client = await dbPool.connect(); // Get a client from the pool
+
         const scrapePromises = searchall.map(url => scrapeWebsite(url, searchQuery));
-
-        // Wait for all promises to resolve concurrently
         const resultsPerUrl = await Promise.all(scrapePromises);
-
-        // Flatten the array of arrays into a single array of stories
         let allStories = resultsPerUrl.flat();
 
-        // Remove duplicates based on title
         const uniqueStories = [];
         const seenTitles = new Set();
-        allStories.forEach(story => {
+        for (const story of allStories) {
             if (!seenTitles.has(story.title)) {
                 seenTitles.add(story.title);
                 uniqueStories.push(story);
+
+                // --- Store/Update story in database ---
+                try {
+                    await client.query(
+                        `INSERT INTO stories (title, url, categories)
+                         VALUES ($1, $2, $3)
+                         ON CONFLICT (url) DO UPDATE SET
+                             title = EXCLUDED.title,
+                             categories = EXCLUDED.categories,
+                             last_scraped_at = CURRENT_TIMESTAMP`,
+                        [story.title, story.link, story.categories] // story.link is the URL
+                    );
+                    // console.log(`Stored/Updated story "${story.title}" in DB.`); // Optional: log each story saved
+                } catch (dbError) {
+                    console.error(`Error saving story "${story.title}" to DB:`, dbError.message);
+                    // Continue processing, don't fail the whole function if one story save fails
+                }
+                // --- End DB storage ---
             }
-        });
+        }
 
         return {
             statusCode: 200,
@@ -33,7 +91,11 @@ exports.handler = async (event, context) => {
         console.error("Error in scrape function handler:", error);
         return {
             statusCode: 500,
-            body: JSON.stringify({ error: 'Error occurred while scraping' }),
+            body: JSON.stringify({ error: 'Error occurred while scraping or processing' }),
         };
+    } finally {
+        if (client) {
+            client.release(); // Release client back to the pool
+        }
     }
 };
