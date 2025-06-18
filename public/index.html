@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCStories Search</title>
+    <link rel="stylesheet" type="text/css" href="style-sheet.css">
+</head>
+<body>
+    <article id="mcstories">
+        <h3 class="title">MCStories Search</h3>
+        <h3 class="byline">By -=pizzaman=-</h3>
+        
+        <button id="theme-toggle" aria-label="Toggle Dark Mode"></button>
+
+        <section>
+            <h3>Disclaimer #1 Grown-Ups Only!</h3>
+            <p>This site may contain or link to <strong>explicit content</strong>. It is not intended for</p>
+            <p>children.</p>
+        </section>
+
+        <section>
+            <h3>Disclaimer #2</h3>
+            <p>This site is not in any way affiliated to the original site from which it</p>
+            <p>searches.</p>
+        </section>
+    </article>
+	
+	<div class="body-container">
+														   
+
+		<div class="search-container">
+			<input type="text" id="search-input" placeholder="Search...">
+			<button onclick="handleSearchClick()" id="search-button">Search</button>
+		</div>
+
+		<h3>Select Categories:</h3>
+		<div class="categories">
+			<div class="category-group">
+				<input type="checkbox" id="bd" value="https://mcstories.com/Tags/bd.html">
+				<label for="bd">bd: bondage</label><br>
+				<input type="checkbox" id="be" value="https://mcstories.com/Tags/be.html">
+				<label for="be">be: bestiality</label><br>
+				<input type="checkbox" id="ca" value="https://mcstories.com/Tags/ca.html">
+				<label for="ca">ca: cannibalism</label><br>
+				<input type="checkbox" id="cb" value="https://mcstories.com/Tags/cb.html">
+				<label for="cb">cb: super-hero/heroine</label><br>
+				<input type="checkbox" id="ds" value="https://mcstories.com/Tags/ds.html">
+				<label for="ds">ds: dom and/or sub</label><br>
+				<input type="checkbox" id="ex" value="https://mcstories.com/Tags/ex.html">
+				<label for="ex">ex: exhibitionism</label><br>
+				<input type="checkbox" id="fd" value="https://mcstories.com/Tags/fd.html">
+				<label for="fd">fd: female dominant</label><br>
+				<input type="checkbox" id="ff" value="https://mcstories.com/Tags/ff.html">
+				<label for="ff">ff: female/female sex</label><br>
+				<input type="checkbox" id="ft" value="https://mcstories.com/Tags/ft.html">
+				<label for="ft">ft: fetish (usually clothing)</label><br>
+				<input type="checkbox" id="fu" value="https://mcstories.com/Tags/fu.html">
+				<label for="fu">fu: furry</label><br>
+				<input type="checkbox" id="gr" value="https://mcstories.com/Tags/gr.html">
+				<label for="gr">gr: growth/enlargement</label><br>
+				<input type="checkbox" id="hm" value="https://mcstories.com/Tags/hm.html">
+				<label for="hm">hm: humiliation</label><br>
+				<input type="checkbox" id="hu" value="https://mcstories.com/Tags/hu.html">
+				<label for="hu">hu: humor</label><br>
+				<input type="checkbox" id="in" value="https://mcstories.com/Tags/in.html">
+				<label for="in">in: incest</label><br>
+				<input type="checkbox" id="la" value="https://mcstories.com/Tags/la.html">
+				<label for="la">la: lactation</label><br>
+				<input type="checkbox" id="ma" value="https://mcstories.com/Tags/ma.html">
+				<label for="ma">ma: masturbation</label><br>
+				<input type="checkbox" id="mc" value="https://mcstories.com/Tags/mc.html">
+				<label for="mc">mc: mind control</label><br>
+				<input type="checkbox" id="md" value="https://mcstories.com/Tags/md.html">
+				<label for="md">md: male dominant</label><br>
+				<input type="checkbox" id="mf" value="https://mcstories.com/Tags/mf.html">
+				<label for="mf">mf: male/female sex</label><br>
+				<input type="checkbox" id="mm" value="https://mcstories.com/Tags/mm.html">
+				<label for="mm">mm: male/male sex</label><br>
+				<input type="checkbox" id="nc" value="https://mcstories.com/Tags/nc.html">
+				<label for="nc">nc: non-consensual</label><br>
+				<input type="checkbox" id="rb" value="https://mcstories.com/Tags/rb.html">
+				<label for="rb">rb: robots</label><br>				
+				<input type="checkbox" id="sc" value="https://mcstories.com/Tags/sc.html">
+				<label for="sc">sc: scatology</label><br>
+				<input type="checkbox" id="sf" value="https://mcstories.com/Tags/sf.html">
+				<label for="sf">sf: science fiction</label><br>
+				<input type="checkbox" id="ts" value="https://mcstories.com/Tags/ts.html">
+				<label for="ts">ts: time stop</label><br>
+				<input type="checkbox" id="ws" value="https://mcstories.com/Tags/ws.html">
+				<label for="ws">ws: watersports</label><br>
+			</div>
+		</div>
+
+		<div id="results-container">
+			</div>
+	</div>
+
+    <script src="search.js"></script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+{
+  "name": "mcstories-search",
+  "version": "1.0.0",
+  "description": "MCStories Search",
+  "dependencies": {
+    "express": "^4.17.1",
+    "axios": "^0.21.1",
+    "cheerio": "^1.0.0-rc.10",
+	"pg": "^8.0.0"
+  }
+}

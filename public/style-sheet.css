@@ -1,0 +1,700 @@
+/* style-sheet.css */
+/* Basic Reset & Font */
+@import url('https://fonts.googleapis.com/css2?family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
+/* Ensure these display properties from your original CSS are present */
+article, aside, details, figcaption, figure, footer,
+header, hgroup, main, nav, section, summary {
+    display: block;
+}
+
+/* --- Theme Variables (Light Mode Defaults) --- */
+:root {
+    --bg-color: rgb(230, 230, 234); /* From original body background */
+    --text-color: black; /* From original article/body-container color, general links */
+    --heading-color: black; /* Assuming headings are black by default */
+    --container-bg: rgb(244, 244, 248); /* From original article/body-container background */
+    --border-color: #0056b3; /* Existing, used for results/categories borders */
+    --link-color: black; /* From original a:link */
+    --link-hover-bg: rgba(72, 61, 139, 0.75); /* From original a:hover */
+    --button-bg: #007bff; /* Existing green */
+    --button-text: white; /* Existing */
+    --button-hover-bg: #0056b3; /* Existing */
+    --input-bg: #f9f9f9; /* Existing */
+    --input-border: #ccc; /* Existing */
+    --disclaimer-text: #555; /* Existing */
+    --error-color: #cc0000; /* Existing */
+    /* Category link default backgrounds - adapted from original rgba values */
+    --category-link-bg-bd: rgba(128, 128, 133, 0.25); /* From original article a:link */
+    --category-link-bg-mm: rgba(0, 255, 255, 0.25); /* From original a.mm:link */
+    --category-link-bg-fd: rgba(0, 255, 0, 0.25); /* From original a.fd:link (green) */
+    --category-link-bg-md: rgba(255, 255, 0, 0.25); /* From original a.md:link */
+    --category-link-bg-ff: rgba(255, 0, 0, 0.25); /* From original a.ff:link */
+    --category-link-bg-mf: rgba(128, 0, 128, 0.25); /* From original a.mf:link */
+    --visited-link-color: rgb(72, 61, 139); /* New variable for article a:visited */
+}
+
+/* --- Dark Mode Overrides --- */
+body.dark-mode {
+    --bg-color: #2b2b2b; /* Dark background */
+    --text-color: #e0e0e0; /* Light text */
+    --heading-color: #f4f4f4;
+    --container-bg: #3c3c3c; /* Slightly lighter dark container */
+    --border-color: #0056b3;
+    --link-color: #90caf9; /* Lighter blue for links */
+    --link-hover-bg: rgba(144, 202, 249, 0.3);
+    --button-bg: #1a73e8; /* A slightly different shade for dark mode if desired, or keep same */
+    --button-text: #ffffff; /* Dark text for light button on dark background */
+    --button-hover-bg: #0d47a1;
+    --input-bg: #4a4a4a;
+    --input-border: #777;
+    --disclaimer-text: #bbb;
+    --error-color: #ff6666; /* Lighter red for dark mode errors */
+    /* Dark mode adjustments for category links - ensure good contrast */
+    --category-link-bg-bd: rgba(100, 100, 100, 0.25);
+    --category-link-bg-mm: rgba(0, 200, 200, 0.25);
+    --category-link-bg-fd: rgba(0, 200, 0, 0.25); /* Adjusted green for dark mode */
+    --category-link-bg-md: rgba(200, 200, 0, 0.25);
+    --category-link-bg-ff: rgba(200, 50, 50, 0.25);
+    --category-link-bg-mf: rgba(150, 0, 150, 0.25);
+    --visited-link-color: #a0d6fc; /* Lighter visited link color for dark mode */
+}
+
+/* --- General Body Styles --- */
+body {
+    background: var(--bg-color); /* Use variable */
+    text-align: center; /* Original setting from your CSS */
+    font-family: 'PT Serif', Georgia, serif; /* Match font-family order */
+    margin: 0; /* Remove explicit left/right margins here */
+    line-height: 1.6;
+    padding: 0;
+    color: var(--text-color); /* Default text color for body */
+    transition: background 0.3s, color 0.3s; /* Smooth transition for theme change */
+}
+
+/* --- Article/Disclaimer Styles --- */
+article#mcstories {
+    color: var(--text-color); /* Use variable for text color */
+    background: var(--container-bg); /* Use variable for background */
+    margin: 1em auto; /* Original setting from your CSS */
+    padding: 2em 3em; /* Original setting */
+    max-width: 36em; /* Original setting */
+    font-family: 'PT Serif', Georgia, serif; /* Original setting */
+    line-height: 155%; /* Original setting */
+    text-align: center; /* Original setting (for content within the article) */
+    font-size: 98%; /* Original setting */
+    text-rendering: optimizeLegibility; /* Original setting */
+    transition: background 0.3s, color 0.3s; /* Smooth transition */
+    position: relative; /* Added for absolute positioning of theme-toggle */
+}
+
+/* NEW: Center align sections within the mcstories article */
+article#mcstories section {
+    text-align: center;
+}
+
+/* Specific paragraph styles from your original CSS */
+article#mcstories p {
+    hyphens: auto;
+    text-align: center;
+    margin-top: 0.25em;
+    margin-bottom: 0em;
+    text-indent: 2em;
+}
+
+p:first-of-type {
+    text-indent: 0em;
+}
+
+header p, footer p, .synopsis p {
+    text-align: left;
+    hyphens: none;
+    -webkit-hyphens: none;
+}
+
+/* --- Container Styles for Main Content (Search, Categories, Results) --- */
+.body-container {
+    color: var(--text-color); /* Use variable for text color */
+    background: var(--container-bg); /* Use variable for background */
+    margin: 1em auto; /* Original setting from your CSS */
+    padding: 2em 3em; /* Original setting */
+    max-width: 36em; /* Original setting */
+    font-family: 'PT Serif', Georgia, serif; /* Original setting */
+    line-height: 155%; /* Original setting */
+    text-align: center; /* IMPORTANT: Original setting to center contents within this container */
+    font-size: 98%; /* Original setting */
+    text-rendering: optimizeLegibility; /* Original setting */
+    border: 1px solid var(--border-color); /* Existing, for visual separation */
+    border-radius: 8px; /* Existing */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Existing */
+    transition: background 0.3s, color 0.3s, border-color 0.3s, box-shadow 0.3s; /* Smooth transition */
+}
+
+.search-container {
+    display: flex;
+    margin-bottom: 20px;
+    justify-content: center; /* Centers flex items if they don't fill the width */
+    max-width: 100%; /* Ensure it fits within parent */
+}
+
+/* --- Input Field Styles --- */
+#search-input {
+    flex-grow: 1;
+    padding: 10px;
+    border: 1px solid var(--input-border);
+    border-radius: 4px 0 0 4px;
+    font-size: 16px;
+    background-color: var(--input-bg);
+    color: var(--text-color);
+    transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+}
+
+/* --- Button Styles --- */
+#search-button {
+    padding: 10px 15px;
+    background-color: var(--button-bg);
+    color: var(--button-text);
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+    border-radius: 0 4px 4px 0;
+}
+
+#search-button:hover {
+    background-color: var(--button-hover-bg);
+}
+
+/* --- Theme Toggle Button Specific Styles --- */
+#theme-toggle {
+    position: absolute;
+    top: 15px; /* Adjust as needed */
+    right: 15px; /* Adjust as needed */
+    width: 40px; /* Smaller size */
+    height: 40px; /* Smaller size */
+    border-radius: 50%; /* Make it round */
+    background-color: var(--button-bg);
+    color: var(--button-text);
+    border: none;
+    cursor: pointer;
+    font-size: 20px; /* Size for the icon */
+    display: flex; /* To center the icon */
+    align-items: center; /* To center the icon */
+    justify-content: center; /* To center the icon */
+    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+    z-index: 10; /* Ensure it stays on top of other content if any overlap */
+}
+
+/* Swapped icons: Moon for light mode, Sun for dark mode */
+#theme-toggle::before {
+    content: '🌙'; /* Moon icon for light mode (default) */
+}
+
+body.dark-mode #theme-toggle::before {
+    content: '☀️'; /* Sun icon for dark mode */
+}
+
+#theme-toggle:hover {
+    background-color: var(--button-hover-bg);
+}
+
+
+/* NEW: Styles for the "Read more" button */
+.read-more-btn {
+    display: inline-block; /* Make it behave like an inline block for layout */
+    padding: 5px 10px; /* Smaller padding than main buttons */
+    margin-left: 10px; /* Space from the title */
+    background-color: var(--button-bg);
+    color: var(--button-text) !important; /* Use !important to override link default color */
+    border: 1px solid var(--button-bg);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8em; /* Slightly smaller font than title */
+    text-decoration: none !important; /* Remove underline */
+    transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+}
+
+.read-more-btn:hover {
+    background-color: var(--button-hover-bg);
+    border-color: var(--button-hover-bg);
+}
+
+/* --- Categories Styles --- */
+.categories {
+    margin-top: 40px; /* Original setting from your CSS */
+	margin-left: 5px;
+    display: flex; /* Existing */
+    flex-wrap: wrap; /* Existing */
+    margin: 10px; /* Original setting */
+    margin-bottom: 10px; /* Original setting */
+    padding: 15px; /* Existing */
+    border: 1px solid var(--border-color); /* Existing */
+    border-radius: 8px; /* Existing */
+    background-color: var(--container-bg); /* Existing */
+    transition: background-color 0.3s, border-color 0.3s; /* Existing */
+    justify-content: center; /* Center categories within its flex container if space allows */
+}
+
+.category-group {
+	margin-left: 5px;
+    margin-right: 20px; /* Original setting */
+    text-align: left; /* Original setting (for text within each group) */
+    column-count: 2; /* This will arrange the content into two columns */
+    column-gap: 30px; /* Optional: Add some space between columns for readability */
+}
+
+.category-group label {
+    margin-left: 5px;
+    color: var(--text-color);
+}
+
+/* --- Result Item Styles (which you might perceive as a "table") --- */
+.result-item {
+    margin-bottom: 10px; /* Original setting from your CSS */
+    padding: 5px; /* Original setting */
+    border-bottom: 1px solid var(--border-color); /* Use variable for consistency */
+    background-color: var(--container-bg); /* Use variable for background */
+    color: var(--text-color); /* Ensure text color applies */
+    border-radius: 8px; /* Existing */
+    transition: background-color 0.3s, border-color 0.3s; /* Existing */
+    /* Fix: Ensure results display in a single column */
+    display: block; 
+    max-width: 100%; /* Ensure it doesn't exceed parent width */
+    text-align: left; /* Keep content within result-item left-aligned */
+}
+
+/* NEW: Styles for single category result item to center it */
+.result-item.single-category-result {
+    display: flex;
+    flex-direction: column; /* Stack h3 and button if needed, but flex-wrap handles inline better */
+    align-items: center; /* Center horizontally in the flex container */
+    justify-content: center; /* Center content if items are on single line */
+    text-align: center; /* Ensure text within is centered if it wraps */
+    border: 1px solid var(--border-color); /* Apply border here as well */
+    padding: 15px; /* Adjust padding */
+    margin: 15px auto; /* Center the block itself and add vertical margin */
+}
+
+.result-item.single-category-result h3 {
+    display: flex; /* Make h3 itself a flex container */
+    align-items: center; /* Vertically align items in h3 */
+    justify-content: center; /* Center content of h3 */
+    flex-wrap: wrap; /* Allow wrapping for long titles + button */
+    text-align: center; /* Ensure internal text is centered */
+    width: 100%; /* Take full width for centering */
+    margin: 0; /* Remove default h3 margins */
+}
+
+.result-item.single-category-result .read-more-btn {
+    margin-left: 10px; /* Space from category name */
+    margin-top: 5px; /* Add a little top margin if it wraps */
+    margin-bottom: 5px; /* Add a little bottom margin if it wraps */
+}
+
+
+.result-item:last-child {
+	/* border-bottom: none; */ /* This rule was removed as it was causing the last item's border to disappear */
+}
+
+.result-item h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: var(--heading-color);
+}
+
+/* --- Links General Styles --- */
+a:link {
+    text-decoration: none; /* Original setting */
+    color: var(--link-color); /* Use variable */
+    transition: color 0.2s;
+}
+
+article a:link {
+    background: var(--category-link-bg-bd); /* Original article a:link background mapped to a variable */
+}
+
+.index a:link {
+    background: none; /* Original setting */
+}
+
+.index a:hover {
+    background: var(--link-hover-bg); /* Use variable */
+}
+
+a:visited {
+    color: var(--link-color); /* Use variable */
+}
+
+a:hover {
+    color: white; /* Original setting */
+    background: var(--link-hover-bg);
+}
+
+article a:visited {
+    color: var(--visited-link-color); /* Use new variable for visited links in articles */
+}
+
+article a:hover {
+    color: white; /* Original setting */
+    background: var(--link-hover-bg);
+}
+
+/* Specific category link colors from your original CSS, now using variables for default colors */
+a.mm:link {
+    background: var(--category-link-bg-mm);
+}
+a.mm:hover {
+    background: rgba(0, 255, 255, 0.75);
+    color: black;
+}
+
+a.fd:link {
+    background: var(--category-link-bg-fd);
+}
+a.fd:hover {
+    background: rgba(0, 255, 0, 0.75); /* Match original green hover */
+    color: black;
+}
+
+a.md:link {
+    background: var(--category-link-bg-md);
+}
+a.md:hover {
+    background: rgba(255, 255, 0, 0.75);
+    color: black;
+}
+
+a.ff:link {
+    background: var(--category-link-bg-ff);
+}
+a.ff:hover {
+    background: rgba(255, 0, 0, 0.75);
+    color: white;
+}
+
+a.mf:link {
+    background: rgba(128, 0, 128, 0.25);
+}
+a.mf:hover {
+    background: rgba(128, 0, 128, 0.75);
+    color: white;
+}
+
+/* --- Synopsis & Loading Styles --- */
+.toggle-synopsis-btn { /* Changed from .show-synopsis-btn */
+    padding: 8px 12px;
+    background-color: var(--button-bg);
+    color: var(--button-text);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+}
+
+.toggle-synopsis-btn:hover { /* Changed from .show-synopsis-btn:hover */
+    background-color: var(--button-hover-bg);
+}
+
+.synopsis-container {
+    margin-top: 10px;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background-color: var(--input-bg);
+    font-size: 0.9em;
+    color: var(--text-color);
+    text-align: left; /* Ensure synopsis text is left-aligned */
+    transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+    display: none; /* Initially hide the synopsis container */
+}
+
+.error {
+    color: var(--error-color);
+}
+
+/* Basic Loading Bar Styles */
+.loading-bar {
+    width: 100%;
+    height: 4px;
+    background-color: var(--input-bg); /* Use variable */
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 15px;
+    margin-bottom: 10px;
+}
+
+.loading-bar::before {
+    content: '';
+    display: block;
+    height: 100%;
+    width: 30%;
+    background-color: var(--button-bg); /* Use variable */
+    animation: loading-animation 1.5s infinite ease-in-out;
+}
+
+@keyframes loading-animation {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(333%);
+    }
+}
+
+/* Style for the "Searching..." text */
+.results-container p {
+    text-align: center;
+    font-style: italic;
+    color: var(--text-color); /* Use variable */
+	column-count: 2;
+}
+
+/* Other original styles from your CSS */
+#masthead {
+    font-family: 'Lucida Sans Unicode', 'Lucida Grande', sans-serif;
+    font-size: 200%;
+    font-weight: normal;
+    margin: 0;
+}
+
+#masthead a:link {
+    text-decoration: none;
+    border-bottom: 0;
+}
+
+.overstrike { text-decoration: line-through }
+
+.epigraph { margin-bottom: 1em; }
+
+.epigraph .bibl { text-align: right; margin-right: 4em; }
+.signed, .inlineDate, .caption { font-style: italic }
+
+.lg, .sp, .pick, .epigraph {
+    margin-top: 1em;
+    margin-bottom: 1em;
+}
+
+.address { margin: 1em }
+
+blockquote {
+    margin-left: 1.25em;
+    margin-right: 2em;
+    border-left: 3px solid var(--bg-color); /* Using background color variable */
+    padding-left: 0.75em;
+}
+
+nav {
+    font-family: 'Lucida Sans Unicode', 'Lucida Grande', sans-serif;
+    font-size: 75%;
+    margin: 0.5em;
+}
+
+.stage { font-style: italic }
+em em   { font-style: normal }
+em em em  { font-style: italic }
+.form { font-weight: bold }
+
+.castItem .name { font-style: italic }
+
+pre, kbd, .typewriter {
+    font-family: 'courier new', courier, monospace;
+    font-size: 85%
+}
+
+h3 {
+    font-size: 140%;
+    margin-top: 0.1em;
+    margin-bottom: 0.2em;
+    font-weight: normal;
+}
+
+section h3 {
+    font-size: 130%;
+}
+
+h3.email {
+    font-size: 110%;
+}
+
+h3 + p, h3 + section, h3 + .salute {
+    margin-top: 0.75em;
+}
+
+h3.email + p, h3.email + .salute {
+    margin-top: 2em;
+}
+
+.listHeading {
+    font-size: 110%;
+    font-weight: normal;
+    margin-top: 0.5em;
+    margin-bottom: 0em;
+    text-indent: 1em;
+}
+
+.listHeading + ol, .listHeading + ul {
+    margin-block-start: 0em;
+}
+
+p + .trailer, section + .trailer {
+    margin-top: 0.75em;
+}
+
+p + .salute, p + .signed {
+    margin-top: 1em;
+}
+
+.castGroup + .castGroup {
+    margin-top: 0;
+}
+
+section + section {
+    margin-top: 2em;
+}
+
+.milestone {
+    display: block;
+    text-align: center;
+    font-size: 130%;
+    letter-spacing: 1em;
+    margin-top: 1em;
+    margin-bottom: 1em;
+}
+
+header section, footer section, .note {
+    background: var(--bg-color); /* Using background color variable */
+    padding: 0.5em;
+}
+
+header, footer {
+    font-size: 95%;
+    margin-top: 1em;
+    margin-bottom: 1em;
+}
+
+#datecol {
+    width: 11em;
+}
+
+div.indented {
+    margin-left: 2em;
+}
+
+dt {
+    float: left;
+    margin-right: 0.5em;
+}
+
+.screenplay {
+    font-family: 'courier new', courier, fixed;
+    text-indent: 0;
+    margin-left: 1em
+}
+
+.screenplay dl {
+    margin-right: 4em;
+    margin-top: 2em;
+    margin-bottom: 2em;
+}
+
+.screenplay dt {
+    float: none;
+    display: block;
+    text-align: center;
+    font-style: normal;
+    font-weight: normal;
+}
+
+.screenplay .caption {
+    text-align: center;
+    margin-right: 4em;
+}
+
+.screenplay .stage {
+    display: block;
+}
+
+.screenplay div.stage {
+    margin-top: 2em;
+    margin-bottom: 2em;
+}
+
+.screenplay p {
+    text-indent: 0;
+}
+
+.orth {
+    font-weight: bold;
+}
+
+.form {
+    float: left;
+    margin-right: 0.5em;
+}
+
+.entry ol {
+    clear: both;
+}
+
+table {
+    margin-top: 2em;
+    margin-bottom: 2em;
+    border-spacing: 0px;
+    margin-left: auto; /* Center table within its parent */
+    margin-right: auto;
+}
+
+th.date {
+    width: 6.5em;
+}
+
+th.wc {
+    width: 7em;
+}
+
+table.index {
+    width: 120%;
+    margin-left: -3em;
+    margin-right: -3em;
+    margin-top: 1.5em;
+}
+
+.index tr:nth-child(even) {
+    background: var(--bg-color); /* Using bg color variable */
+}
+
+.index td, .index th {
+    padding: 10px 5px;
+}
+
+.index td:first-child, .index th:first-child {
+    padding-left: 3em;
+}
+
+.index td:last-child, .index th:last-child {
+    padding-right: 3em;
+}
+
+.index th {
+    text-align: left;
+    font-weight: normal;
+}
+
+div.story {
+    width: 120%;
+    margin-left: -3em;
+    margin-right: -3em;
+    padding-top: 1em;
+    padding-bottom: 1em;
+}
+
+div.story div {
+    padding-left: 3em;
+    padding-right: 3em;
+}
+
+div.story:nth-child(even) {
+    background: var(--bg-color); /* Using background color variable */
+}
