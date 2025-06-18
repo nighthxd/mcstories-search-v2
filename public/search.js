@@ -24,49 +24,37 @@ async function handleSearchClick() {
 
     resultsContainer.innerHTML = 'Loading results...';
 
-    const includeCheckboxes = document.querySelectorAll('input[name="include_tag"]:checked');
+    const includeCheckboxes = document.querySelectorAll('input[name=\"include_tag\"]:checked');
     const includedTags = Array.from(includeCheckboxes).map(cb => cb.value);
 
-    const excludeCheckboxes = document.querySelectorAll('input[name="exclude_tag"]:checked');
+    const excludeCheckboxes = document.querySelectorAll('input[name=\"exclude_tag\"]:checked');
     const excludedTags = Array.from(excludeCheckboxes).map(cb => cb.value);
 
-    let apiUrl;
-    let fetchOptions = {};
+    let apiUrl = includedTags.length > 0 || excludedTags.length > 0
+        ? '/.netlify/functions/scrape-categories?'
+        : '/.netlify/functions/scrape?';
 
-    if (includedTags.length > 0 || excludedTags.length > 0) {
-        // If categories are selected, use scrape-categories endpoint with GET and query parameters
-        apiUrl = '/.netlify/functions/scrape-categories?';
-        const params = new URLSearchParams();
-        if (query) {
-            params.append('query', query);
-        }
-        if (includedTags.length > 0) {
-            params.append('categories', includedTags.join(','));
-        }
-        if (excludedTags.length > 0) {
-            params.append('excludedCategories', excludedTags.join(','));
-        }
-        apiUrl += params.toString();
-        fetchOptions.method = 'GET'; // Changed to GET for query parameters
-    } else {
-        // If no categories, use the general scrape endpoint with POST body
-        apiUrl = '/.netlify/functions/scrape?';
-        fetchOptions.method = 'POST';
-        fetchOptions.headers = {
-            'Content-Type': 'application/json',
-        };
-        fetchOptions.body = JSON.stringify({ query: query }); // Only send query if no categories
+    const params = new URLSearchParams();
+    if (query) {
+        params.append('query', query);
+    }
+    if (includedTags.length > 0) {
+        params.append('tags', includedTags.join(','));
+    }
+    if (excludedTags.length > 0) {
+        params.append('exclude_tags', excludedTags.join(','));
     }
 
-    try {
-        const response = await fetch(apiUrl, fetchOptions);
+    apiUrl += params.toString();
 
+    try {
+        const response = await fetch(apiUrl);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         const stories = await response.json();
 
-        resultsContainer.innerHTML = ''; // Clear "Loading results..."
+        resultsContainer.innerHTML = '';
 
         if (stories.length === 0) {
             resultsContainer.innerHTML = '<p>No stories found matching your criteria.</p>';
@@ -74,69 +62,76 @@ async function handleSearchClick() {
             const ul = document.createElement('ul');
             stories.forEach(story => {
                 const li = document.createElement('li');
-                const storyHeader = document.createElement('div');
-                storyHeader.className = 'story-header';
+                li.className = 'story-item'; // Add class for styling
+
+                const headerDiv = document.createElement('div');
+                headerDiv.className = 'story-header';
 
                 const a = document.createElement('a');
                 a.href = story.url;
                 a.textContent = story.title;
                 a.target = "_blank";
-                storyHeader.appendChild(a);
+
+                headerDiv.appendChild(a);
 
                 if (story.categories && story.categories.length > 0) {
                     const categoriesSpan = document.createElement('span');
                     categoriesSpan.className = 'story-categories';
                     categoriesSpan.textContent = ` (${story.categories.join(', ').toLowerCase()})`;
-                    storyHeader.appendChild(categoriesSpan);
+                    headerDiv.appendChild(categoriesSpan);
                 }
-                li.appendChild(storyHeader);
+                li.appendChild(headerDiv);
 
-                if (story.synopsis) {
-                    const synopsisDiv = document.createElement('div');
-                    synopsisDiv.className = 'story-synopsis';
-                    synopsisDiv.textContent = story.synopsis;
-                    synopsisDiv.style.display = 'none'; // Initially hidden
-                    li.appendChild(synopsisDiv);
+                // Synopsis display area
+                const synopsisDiv = document.createElement('div');
+                synopsisDiv.className = 'story-synopsis';
+                // Initially, display a placeholder or the empty synopsis if available from DB
+                synopsisDiv.textContent = story.synopsis || 'Synopsis: Content not available yet.'; 
+                li.appendChild(synopsisDiv);
 
-                    const toggleButton = document.createElement('button');
-                    toggleButton.className = 'toggle-synopsis';
-                    toggleButton.textContent = 'Show Synopsis';
-                    toggleButton.setAttribute('data-synopsis-loaded', 'false'); // Track if synopsis is loaded
-                    toggleButton.onclick = async () => {
-                        if (synopsisDiv.style.display === 'block') {
-                            synopsisDiv.style.display = 'none';
-                            toggleButton.textContent = 'Show Synopsis';
-                        } else {
-                            synopsisDiv.style.display = 'block';
-                            toggleButton.textContent = 'Hide Synopsis';
+                // Show Synopsis Button
+                const toggleButton = document.createElement('button');
+                toggleButton.className = 'toggle-synopsis';
+                toggleButton.textContent = 'Show Synopsis';
+                toggleButton.setAttribute('data-synopsis-loaded', 'false'); // Custom attribute to track load state
+                toggleButton.onclick = async () => {
+                    if (synopsisDiv.style.display === 'block') {
+                        synopsisDiv.style.display = 'none';
+                        toggleButton.textContent = 'Show Synopsis';
+                    } else {
+                        synopsisDiv.style.display = 'block';
+                        toggleButton.textContent = 'Hide Synopsis';
 
-                            // Fetch synopsis only if not already loaded
-                            if (toggleButton.getAttribute('data-synopsis-loaded') === 'false') {
-                                try {
-                                    const synopsisResponse = await fetch(`/.netlify/functions/get-synopsis?url=${encodeURIComponent(story.url)}`);
-                                    if (!synopsisResponse.ok) {
-                                        throw new Error(`HTTP error! status: ${synopsisResponse.status}`);
-                                    }
-                                    const data = await synopsisResponse.json();
-                                    synopsisDiv.textContent = data.synopsis || 'Failed to retrieve synopsis.';
-                                    toggleButton.setAttribute('data-synopsis-loaded', 'true');
-                                } catch (synopsisError) {
-                                    console.error('Error fetching synopsis:', synopsisError);
-                                    synopsisDiv.textContent = 'Error loading synopsis. Please try again.';
+                        // Fetch synopsis only if not already loaded or if it's the initial placeholder
+                        if (toggleButton.getAttribute('data-synopsis-loaded') === 'false' || 
+                            synopsisDiv.textContent === 'Synopsis: Content not available yet.') {
+                            synopsisDiv.textContent = 'Loading synopsis...'; // Show loading state
+                            try {
+                                const synopsisResponse = await fetch(`/.netlify/functions/get-synopsis?url=${encodeURIComponent(story.url)}`);
+                                if (!synopsisResponse.ok) {
+                                    throw new Error(`HTTP error! status: ${synopsisResponse.status}`);
                                 }
+                                const data = await synopsisResponse.json();
+                                synopsisDiv.textContent = data.synopsis || 'Failed to retrieve synopsis.';
+                                toggleButton.setAttribute('data-synopsis-loaded', 'true');
+                            } catch (synopsisError) {
+                                console.error('Error fetching synopsis:', synopsisError);
+                                synopsisDiv.textContent = 'Error loading synopsis. Please try again.';
                             }
                         }
-                    };
-                    li.appendChild(toggleButton);
+                    }
+                };
+                li.appendChild(toggleButton);
 
-                    const readMoreButton = document.createElement('button');
-                    readMoreButton.className = 'read-more-button';
-                    readMoreButton.textContent = 'Read Story';
-                    readMoreButton.onclick = () => {
-                        window.open(story.url, '_blank');
-                    };
-                    li.appendChild(readMoreButton);
-                }
+                // Read More button
+                const readMoreButton = document.createElement('button');
+                readMoreButton.className = 'read-more-button';
+                readMoreButton.textContent = 'Read Story';
+                readMoreButton.onclick = () => {
+                    window.open(story.url, '_blank');
+                };
+                li.appendChild(readMoreButton);
+
                 ul.appendChild(li);
             });
             resultsContainer.appendChild(ul);
