@@ -141,12 +141,12 @@ section p {
 
 /* Sun icon for light mode */
 #theme-toggle::before {
-    content: '☀️'; /* Sun emoji */
+    content: '🌙'; /* Sun emoji */
 }
 
 /* Moon icon for dark mode */
 body.dark-mode #theme-toggle::before {
-    content: '🌙'; /* Moon emoji */
+    content: '☀'; /* Moon emoji */
 }
 
 
