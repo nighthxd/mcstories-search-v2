@@ -76,7 +76,7 @@ exports.handler = async (event, context) => {
                              last_scraped_at = CURRENT_TIMESTAMP`,
                         [story.title, story.link, story.categories, story.synopsis] // UPDATED: Add story.synopsis
                     );
-                    // console.log(`Stored/Updated story "${story.title}" in DB.`); // Optional: log each story saved
+                    // cons.log(`Stored/Updated story "${story.title}" in DB.`); // Optional: log each story saved
                 } catch (dbError) {
                     console.error(`Error saving story "${story.title}" to DB:`, dbError.message);
                     // Continue processing, don't fail the whole function if one story save fails

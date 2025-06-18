@@ -44,7 +44,7 @@ async function scrapeWebsite(url, searchQuery = '') {
                                 rawSynopsis = storyContentDiv.text().trim();
                             }
 
-                            // Limit synopsis length and clean up extra newlines/spaces
+                            // Limit synop length and clean up extra newlines/spaces
                             synopsis = rawSynopsis.substring(0, 500).replace(/\s+/g, ' '); // Limit to 500 chars, collapse whitespace
                             if (rawSynopsis.length > 500) {
                                 synopsis += '...'; // Add ellipsis if truncated

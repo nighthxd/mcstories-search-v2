@@ -145,7 +145,7 @@ exports.handler = async (event, context) => {
             }
         }
         
-        // Final filter to ensure excluded tags are handled if allStories didn't catch them
+        // Fin filter to ensure excluded tags are handled if allStories didn't catch them
         const finalUniqueStories = uniqueStories.filter(story => {
             const matchesSearchQuery = searchQuery === '' || story.title.toLowerCase().includes(searchQuery.toLowerCase());
             const passesExcludedFilter = excludedTags.length === 0 || !excludedTags.some(tag => story.categories.includes(tag));
