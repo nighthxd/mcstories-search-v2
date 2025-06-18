@@ -81,6 +81,12 @@ exports.handler = async (event, context) => {
 
             const { rows } = await client.query(cacheQuery, [queryParamSearch, tagArray]);
 
+            // --- LOGGING FOR DEBUGGING CATEGORY CACHE ---
+            console.log("Cache query for tags:", selectedTags, "query:", searchQuery);
+            console.log("Database rows found for cache:", rows.length);
+            // console.log("First 5 cached rows:", rows.slice(0, 5)); // Uncomment this line if you want to see actual data snippet for rows
+            // --- END LOGGING ---
+
             cachedStories = rows.map(row => ({
                 title: row.title,
                 link: row.url,
