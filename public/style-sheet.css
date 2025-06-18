@@ -124,11 +124,12 @@ body.dark-mode #theme-toggle::before { content: '🌙'; } /* Moon icon for dark 
 .search-container {
     display: flex;
     margin-bottom: 20px;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-color); /* Blue border added back */
     padding: 15px;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    background-color: var(--container-bg);
+    background-color: var(--container-bg); /* Match body-container background */
+    /* NEW: Center content within search-container */
     justify-content: center; /* Centers horizontally */
     align-items: center; /* Centers vertically if elements have different heights */
     flex-wrap: wrap; /* Allow wrapping on smaller screens */
@@ -164,11 +165,11 @@ body.dark-mode #theme-toggle::before { content: '🌙'; } /* Moon icon for dark 
     background-color: var(--button-hover-bg);
 }
 
-/* Center the "Filter Categories:" heading */
+/* New: Center the "Filter Categories:" heading */
 .body-container h3 {
     text-align: center;
-    margin-top: 20px;
-    margin-bottom: 15px;
+    margin-top: 20px; /* Add some space above */
+    margin-bottom: 15px; /* Add some space below */
     color: var(--heading-color);
     transition: color 0.3s;
 }
@@ -176,29 +177,31 @@ body.dark-mode #theme-toggle::before { content: '🌙'; } /* Moon icon for dark 
 
 /* Category Filter Table Container */
 .category-filter-table {
-    border: 1px solid var(--border-color);
-    padding: 15px;
+    border: 1px solid var(--border-color); /* Blue border for the whole box */
+    padding: 15px; /* Padding inside the box */
     margin-bottom: 20px;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    background-color: var(--container-bg);
+    background-color: var(--container-bg); /* Match body-container background */
     transition: background-color 0.3s, border-color 0.3s;
+    /* This container is already centered by body-container's margin: auto */
 }
 
-/* Wrapper for two tables using Flexbox - centers the tables themselves */
+/* New wrapper for two tables using Flexbox */
 .category-tables-wrapper {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: center; /* Centers the tables horizontally */
-    gap: 20px;
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    justify-content: center; /* Changed from space-around to center for tighter grouping */
+    gap: 20px; /* Space between the two tables */
 }
 
 .category-filter-table table {
     width: 100%; /* Default to full width for small screens */
     max-width: 45%; /* Each table takes roughly half the width on larger screens */
-    flex: 1 1 45%; /* Allow tables to grow/shrink relative to available space */
+    flex: 1 1 45%; /* Grow, shrink, base width for flex items */
     border-collapse: collapse;
-    border: none;
+    border: none; /* No outer table border */
+    /* Tables themselves are centered by category-tables-wrapper's justify-content */
 }
 
 @media (max-width: 768px) {
@@ -211,27 +214,24 @@ body.dark-mode #theme-toggle::before { content: '🌙'; } /* Moon icon for dark 
 .category-filter-table th,
 .category-filter-table td {
     padding: 8px 10px;
-    border: none;
-    text-align: center; /* Center text in table headers and data cells */
+    border: none; /* No cell borders */
+    text-align: center; /* NEW: Center text in table headers and data cells */
     vertical-align: top;
-    background-color: var(--container-bg);
+    background-color: var(--container-bg); /* Ensure consistent background */
 }
 
 .category-filter-table th {
-    background-color: var(--button-hover-bg);
+    background-color: var(--button-hover-bg); /* Darker header background */
     color: white;
     font-weight: bold;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3); /* Slight separator for header */
 }
 
-/* Ensure labels and checkboxes align nicely within centered table cells */
+/* Ensure labels and checkboxes align nicely */
 .category-filter-table td label {
     margin-right: 10px;
-    white-space: nowrap;
+    white-space: nowrap; /* Keep label on one line */
     color: var(--text-color);
-    /* NEW: Use flex to center label content if needed, or rely on text-align: center on td */
-    display: inline-flex; /* Treat as inline block but allow flex properties */
-    align-items: center; /* Vertically align checkbox and text */
 }
 
 .category-filter-table input[type="checkbox"] {
@@ -241,12 +241,13 @@ body.dark-mode #theme-toggle::before { content: '🌙'; } /* Moon icon for dark 
 
 /* Results Container */
 #results-container {
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-color); /* Blue border added back */
     padding: 15px;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    background-color: var(--container-bg);
+    background-color: var(--container-bg); /* Match body-container background */
     text-align: center; /* Center block elements inside like "No stories found" message */
+    /* This container is already centered by body-container's margin: auto */
 }
 
 #results-container ul {
@@ -255,7 +256,7 @@ body.dark-mode #theme-toggle::before { content: '🌙'; } /* Moon icon for dark 
     display: flex;
     flex-direction: column;
     align-items: center; /* Centers list items horizontally within the ul */
-    margin: 0;
+    margin: 0; /* Remove default ul margin */
 }
 
 #results-container li {
@@ -264,15 +265,11 @@ body.dark-mode #theme-toggle::before { content: '🌙'; } /* Moon icon for dark 
     border-radius: 5px;
     margin-bottom: 10px;
     padding: 10px;
-    max-width: 700px;
-    width: 100%;
-    box-sizing: border-box;
+    max-width: 700px; /* Limit width of individual result items */
+    width: 100%; /* Ensure it takes available width up to max-width */
+    box-sizing: border-box; /* Include padding/border in width */
     text-align: left; /* Reset text alignment for content inside li */
     transition: background-color 0.3s, border-color 0.3s;
-    /* NEW: For centering internal elements like buttons */
-    display: flex;
-    flex-direction: column;
-    align-items: center; /* Centers content within the li horizontally */
 }
 
 #results-container li:hover {
@@ -281,9 +278,9 @@ body.dark-mode #theme-toggle::before { content: '🌙'; } /* Moon icon for dark 
 
 .story-header {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: wrap; /* Allow title and categories to wrap */
     align-items: baseline;
-    justify-content: center; /* Center title and categories within the header */
+    justify-content: center; /* NEW: Center title and categories within the header */
     margin-bottom: 5px;
 }
 
@@ -303,7 +300,7 @@ body.dark-mode #theme-toggle::before { content: '🌙'; } /* Moon icon for dark 
 .story-categories {
     font-size: 0.9em;
     color: var(--disclaimer-text);
-    white-space: nowrap;
+    white-space: nowrap; /* Keep categories on one line */
 }
 
 .story-synopsis {
@@ -312,23 +309,20 @@ body.dark-mode #theme-toggle::before { content: '🌙'; } /* Moon icon for dark 
     margin-top: 10px;
     padding-left: 10px;
     border-left: 2px solid var(--border-color);
-    display: none;
-    background-color: var(--container-bg);
+    display: none; /* Hidden by default */
+    background-color: var(--container-bg); /* Slightly different background for synopsis */
     padding: 8px;
     border-radius: 4px;
     margin-top: 5px;
     margin-bottom: 5px;
     transition: background-color 0.3s;
-    text-align: justify; /* Justify synopsis text for better readability */
-    width: 100%; /* Ensure it fills parent li for justify to work well */
-    max-width: 600px; /* Optional: limit width for very wide screens */
+    text-align: justify; /* NEW: Justify synopsis text for better readability */
 }
 
 .toggle-synopsis, .read-more-button {
     padding: 5px 10px;
-    /* NEW: Center buttons within their parent li */
-    margin: 5px auto; /* Centers horizontally and provides vertical margin */
-    display: block; /* Ensures margin auto works */
+    margin-right: 10px;
+    margin-top: 10px;
     background-color: var(--button-bg);
     color: var(--button-text);
     border: none;
@@ -344,41 +338,4 @@ body.dark-mode #theme-toggle::before { content: '🌙'; } /* Moon icon for dark 
 
 /* Ensure the dark mode toggles theme toggle icon */
 body.dark-mode #theme-toggle {
-    color: var(--text-color);
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .body-container {
-        padding: 10px;
-        margin: 10px auto;
-    }
-    .search-container {
-        flex-direction: column;
-        padding: 10px;
-    }
-    #search-input {
-        width: 90%;
-        margin-right: 0;
-        margin-bottom: 10px;
-    }
-    #search-button {
-        margin-left: 0;
-        width: 90%;
-    }
-    .category-tables-wrapper {
-        flex-direction: column;
-        gap: 15px;
-    }
-    .category-filter-table table {
-        max-width: 100%;
-    }
-    #results-container li {
-        max-width: 100%;
-        padding: 10px;
-    }
-    .story-synopsis {
-        width: auto;
-        max-width: unset;
-    }
-}
+    color: var(--text
