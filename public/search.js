@@ -34,7 +34,6 @@ async function handleSearchClick() {
     let fetchOptions = {};
 
     if (includedTags.length > 0 || excludedTags.length > 0) {
-        // If categories are selected, use scrape-categories endpoint with GET and query parameters
         apiUrl = '/.netlify/functions/scrape-categories?';
         const params = new URLSearchParams();
         if (query) {
@@ -49,7 +48,6 @@ async function handleSearchClick() {
         apiUrl += params.toString();
         fetchOptions.method = 'GET';
     } else {
-        // If no categories, use the general scrape endpoint with POST body
         apiUrl = '/.netlify/functions/scrape?';
         fetchOptions.method = 'POST';
         fetchOptions.headers = {
@@ -83,28 +81,23 @@ async function handleSearchClick() {
                 a.target = "_blank";
                 storyHeader.appendChild(a);
 
-                // Always create categories span, it will be hidden by CSS if empty
                 if (story.categories && story.categories.length > 0) {
                     const categoriesSpan = document.createElement('span');
                     categoriesSpan.className = 'story-categories';
                     categoriesSpan.textContent = ` (${story.categories.join(', ').toLowerCase()})`;
                     storyHeader.appendChild(categoriesSpan);
                 }
-                li.appendChild(storyHeader); // Append the header (title + categories)
+                li.appendChild(storyHeader);
 
-                // --- START CHANGE FOR SYNOPSIS BUTTON ---
-                // Always create the synopsis div and button, regardless of initial story.synopsis content
                 const synopsisDiv = document.createElement('div');
                 synopsisDiv.className = 'story-synopsis';
-                // Provide a placeholder text if synopsis is initially empty
                 synopsisDiv.textContent = story.synopsis || 'Loading synopsis...';
-                synopsisDiv.style.display = 'none'; // Initially hidden
+                synopsisDiv.style.display = 'none';
                 li.appendChild(synopsisDiv);
 
                 const toggleButton = document.createElement('button');
                 toggleButton.className = 'toggle-synopsis';
                 toggleButton.textContent = 'Show Synopsis';
-                // Set data-synopsis-loaded based on whether story.synopsis has content
                 toggleButton.setAttribute('data-synopsis-loaded', story.synopsis && story.synopsis !== 'Loading synopsis...' ? 'true' : 'false');
                 toggleButton.onclick = async () => {
                     if (synopsisDiv.style.display === 'block') {
@@ -132,14 +125,14 @@ async function handleSearchClick() {
                 };
                 li.appendChild(toggleButton);
 
-                const readMoreButton = document.createElement('button');
-                readMoreButton.className = 'read-more-button';
-                readMoreButton.textContent = 'Read Story';
-                readMoreButton.onclick = () => {
-                    window.open(story.url, '_blank');
-                };
-                li.appendChild(readMoreButton);
-                // --- END CHANGE FOR SYNOPSIS BUTTON ---
+                // Removed the "Read Story" button as the title is already a link
+                // const readMoreButton = document.createElement('button');
+                // readMoreButton.className = 'read-more-button';
+                // readMoreButton.textContent = 'Read Story';
+                // readMoreButton.onclick = () => {
+                //     window.open(story.url, '_blank');
+                // };
+                // li.appendChild(readMoreButton);
 
                 ul.appendChild(li);
             });

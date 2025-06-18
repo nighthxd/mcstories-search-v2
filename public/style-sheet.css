@@ -146,41 +146,47 @@ section p {
     background-color: var(--button-hover-bg);
 }
 
-/* Categories Table */
+/* Category Filters Container */
 .category-filters-container {
     margin-bottom: 20px;
-    overflow-x: auto; /* Allow horizontal scrolling if table is too wide */
 }
 
-.category-table {
-    width: 100%; /* Make table fill container */
-    border-collapse: collapse; /* Remove space between borders */
-    margin-bottom: 20px; /* Space after table */
-    background-color: var(--table-bg);
-    border: 1px solid var(--table-border);
+.category-list {
+    display: flex;
+    flex-wrap: wrap; /* Allows items to wrap to next line */
+    justify-content: space-around; /* Distributes items evenly */
+    gap: 10px; /* Space between items */
+    background-color: var(--container-bg);
+    border: 1px solid var(--border-color);
+    padding: 15px;
+    border-radius: 8px;
     transition: background-color 0.3s, border-color 0.3s;
 }
 
-.category-table th, .category-table td {
-    border: 1px solid var(--table-border);
-    padding: 8px;
-    text-align: center;
-    vertical-align: middle;
+.category-item {
+    display: flex;
+    flex-direction: column; /* Stack label and checkboxes vertically */
+    align-items: flex-start; /* Align content to the start */
+    padding: 5px;
+    border: 1px solid var(--table-border); /* Use table border color for individual items */
+    border-radius: 5px;
+    background-color: var(--container-bg);
+    min-width: 150px; /* Give items a minimum width */
+    max-width: 250px; /* Prevent items from becoming too wide */
+    box-sizing: border-box;
     color: var(--text-color);
-    transition: color 0.3s, border-color 0.3s;
 }
 
-.category-table th {
-    background-color: var(--table-header-bg);
+.category-item label {
     font-weight: bold;
-    color: var(--heading-color);
-    transition: background-color 0.3s, color 0.3s;
+    margin-bottom: 5px;
+    color: var(--text-color);
 }
 
-.category-table label {
-    margin-right: 5px; /* Space between label and checkbox */
-    white-space: nowrap; /* Prevent labels from wrapping */
+.category-item input[type="checkbox"] {
+    margin-right: 5px;
 }
+
 
 /* Results Container */
 #results-container {
@@ -231,9 +237,7 @@ section p {
     font-size: 0.9em;
     color: var(--disclaimer-text);
     white-space: nowrap;
-    /* --- START CHANGE FOR CATEGORY LINE BREAK --- */
     display: block; /* Make it take its own line */
-    /* --- END CHANGE FOR CATEGORY LINE BREAK --- */
 }
 
 .story-synopsis {
@@ -252,7 +256,7 @@ section p {
     text-align: justify;
 }
 
-.toggle-synopsis, .read-more-button {
+.toggle-synopsis { /* Removed .read-more-button from this selector */
     padding: 5px 10px;
     margin-top: 5px;
     margin-right: 5px;
@@ -265,7 +269,7 @@ section p {
     transition: background-color 0.3s;
 }
 
-.toggle-synopsis:hover, .read-more-button:hover {
+.toggle-synopsis:hover { /* Removed .read-more-button:hover from this selector */
     background-color: var(--button-hover-bg);
 }
 
@@ -277,7 +281,7 @@ section p {
     width: 60px;
     height: 30px;
     cursor: pointer;
-    position: fixed; /* Fixed position */
+    position: fixed;
     top: 20px;
     right: 20px;
     display: flex;
@@ -285,7 +289,7 @@ section p {
     padding: 0 5px;
     box-sizing: border-box;
     transition: background-color 0.3s;
-    z-index: 1000; /* Ensure it's above other content */
+    z-index: 1000;
 }
 
 #theme-toggle::before {
@@ -299,5 +303,5 @@ section p {
 }
 
 body.dark-mode #theme-toggle::before {
-    transform: translateX(30px); /* Move circle to the right for dark mode */
+    transform: translateX(30px);
 }
