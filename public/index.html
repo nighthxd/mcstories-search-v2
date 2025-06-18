@@ -32,6 +32,7 @@
 		<div class="search-container">
 			<input type="text" id="search-input" placeholder="Search...">
 			<button onclick="handleSearchClick()" id="search-button">Search</button>
+            <button onclick="handleRefreshClick()" id="refresh-button">Refresh Data</button>
 		</div>
 
 		<h3>Filter Categories:</h3>
@@ -93,7 +94,7 @@
                         <tr>
                             <td><label for="fu-in">fu: furry</label></td>
                             <td><input type="checkbox" id="fu-in" name="include_tag" value="fu"></td>
-                            <td><input type="checkbox" id="fu-ex" name="exclude_tag" value="fu"></td>
+                            <td><input type="checkbox" id="fu-ex" name="fu-ex" value="fu"></td>
                         </tr>
                         <tr>
                             <td><label for="gr-in">gr: growth/enlargement</label></td>
@@ -174,12 +175,12 @@
                         <tr>
                             <td><label for="sf-in">sf: science fiction</label></td>
                             <td><input type="checkbox" id="sf-in" name="include_tag" value="sf"></td>
-                            <td><input type="checkbox" id="sf-ex" name="exclude_tag" value="sf"></td>
+                            <td><input type="checkbox" id=\"sf-ex\" name=\"exclude_tag\" value=\"sf\"></td>
                         </tr>
                         <tr>
                             <td><label for="ts-in">ts: time stop</label></td>
-                            <td><input type="checkbox" id="ts-in" name="include_tag" value="ts"></td>
-                            <td><input type="checkbox" id="ts-ex" name="exclude_tag" value="ts"></td>
+                            <td><input type=\"checkbox\" id=\"ts-in\" name=\"include_tag\" value=\"ts\"></td>
+                            <td><input type=\"checkbox\" id=\"ts-ex\" name=\"exclude_tag\" value=\"ts\"></td>
                         </tr>
                         <tr>
                             <td><label for="ws-in">ws: watersports</label></td>
