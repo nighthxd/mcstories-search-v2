@@ -1,5 +1,5 @@
 // netlify/functions/scrape.js (or wherever your functions are)
-const { scrapeWebsite } = require('../utils/sharedScraperUtils'); // Adjust path as necessary
+const { scrapeWebsite } = require('./utils/sharedScraperUtils'); // Adjust path as necessary
 const { searchall } = require('../categories'); // Adjust path as necessary
 
 exports.handler = async (event, context) => {

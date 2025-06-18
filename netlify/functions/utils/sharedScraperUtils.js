@@ -1,7 +1,7 @@
 // sharedScraperUtils.js
 const axios = require('axios');
 const cheerio = require('cheerio');
-const excludedLinks = require('./excludedLinks'); // Assuming this path is correct relative to functions
+const excludedLinks = require('../../../excludedLinks'); // Assuming this path is correct relative to functions
 
 /**
  * Scrapes a given URL and extracts story titles and links.
