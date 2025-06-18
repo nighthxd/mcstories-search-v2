@@ -1,12 +1,12 @@
 // netlify/functions/scrape-categories.js
 const axios = require('axios');
 const cheerio = require('cheerio');
-const { tags } = require('../../categories'); // Corrected path
-const { scrapeWebsite } = require('./utils/sharedScraperUtils'); // Corrected path
-const { Pool } = require('pg'); // PostgreSQL client library
+const { tags } = require('../../categories');
+const { scrapeWebsite } = require('./utils/sharedScraperUtils');
+const { Pool } = require('pg');
 
 // Initialize a connection pool outside the handler
-let pool; // Reusing the global pool variable logic
+let pool;
 
 async function ensureDbInitialized() {
     if (!pool) {
@@ -21,7 +21,6 @@ async function ensureDbInitialized() {
             }
         });
 
-        // Test the connection and create 'stories' table if it doesn't exist
         try {
             const client = await pool.connect();
             await client.query(`
@@ -37,7 +36,7 @@ async function ensureDbInitialized() {
             client.release();
         } catch (err) {
             console.error('Failed to connect to DB or create "stories" table:', err);
-            pool = null; // Invalidate pool if initialization failed
+            pool = null;
             throw new Error('Database initialization for stories failed.');
         }
     }
@@ -47,7 +46,7 @@ async function ensureDbInitialized() {
 exports.handler = async (event, context) => {
     const selectedTags = event.queryStringParameters.tags;
     const searchQuery = event.queryStringParameters.query || '';
-    let client; // Declare client for finally block
+    let client;
 
     if (!selectedTags) {
         return {
@@ -60,8 +59,51 @@ exports.handler = async (event, context) => {
 
     try {
         const dbPool = await ensureDbInitialized();
-        client = await dbPool.connect(); // Get a client from the pool
+        client = await dbPool.connect();
 
+        // --- Caching Logic: Try to fetch from DB first ---
+        let cachedStories = [];
+        const CACHE_LIFETIME_HOURS = 24; // Define how long results are considered fresh
+
+        try {
+            // Adjust cache query for category search
+            // This query assumes stories are cached with all their categories
+            // It will find stories that match ALL selected tags AND the search query
+            const cacheQuery = `
+                SELECT title, url, categories
+                FROM stories
+                WHERE ($1 = '' OR title ILIKE $1)
+                  AND categories @> $2::text[]
+                  AND last_scraped_at >= NOW() - INTERVAL '${CACHE_LIFETIME_HOURS} hours';
+            `;
+            // If searchQuery is empty, use '%%' to match all titles.
+            const queryParamSearch = searchQuery ? `%${searchQuery}%` : '';
+
+            const { rows } = await client.query(cacheQuery, [queryParamSearch, tagArray]);
+
+            cachedStories = rows.map(row => ({
+                title: row.title,
+                link: row.url,
+                categories: row.categories || []
+            }));
+
+            if (cachedStories.length > 0) {
+                console.log(`Returning ${cachedStories.length} stories from cache for tags: "${selectedTags}" and query: "${searchQuery}"`);
+                return {
+                    statusCode: 200,
+                    body: JSON.stringify(cachedStories),
+                };
+            }
+            console.log(`No fresh cached results for tags: "${selectedTags}" and query: "${searchQuery}". Proceeding to scrape.`);
+
+        } catch (cacheError) {
+            console.error('Error fetching from cache, proceeding with scrape:', cacheError.message);
+            // If there's a cache error, just proceed to scrape
+        }
+        // --- End Caching Logic ---
+
+
+        // --- Original Scraping Logic (Fall-back if no cache hit) ---
         const urlsToScrape = tagArray.map(tag => tags[tag]).filter(url => url);
 
         if (urlsToScrape.length === 0) {
@@ -110,16 +152,15 @@ exports.handler = async (event, context) => {
                              title = EXCLUDED.title,
                              categories = EXCLUDED.categories,
                              last_scraped_at = CURRENT_TIMESTAMP`,
-                        [story.title, story.link, story.categories] // story.link is the URL
+                        [story.title, story.link, story.categories]
                     );
-                    // console.log(`Stored/Updated story "${story.title}" in DB.`); // Optional: log each story saved
                 } catch (dbError) {
-                    console.error(`Error saving story "${story.title}" to DB:`, dbError.message);
-                    // Continue processing, don't fail the whole function if one story save fails
+                    console.error(`Error saving story "${story.title}" to DB during scrape fallback:`, dbError.message);
                 }
                 // --- End DB storage ---
             }
         }
+        // --- End Original Scraping Logic ---
 
         return {
             statusCode: 200,
@@ -133,7 +174,7 @@ exports.handler = async (event, context) => {
         };
     } finally {
         if (client) {
-            client.release(); // Release client back to the pool
+            client.release();
         }
     }
 };
