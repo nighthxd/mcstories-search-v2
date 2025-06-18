@@ -1,266 +1,341 @@
-/* Base styles */
+/* style-sheet.css */
+/* Basic Reset & Font */
+@import url('https://fonts.googleapis.com/css2?family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
+/* Ensure these display properties from your original CSS are present */
+article, aside, details, figcaption, figure, footer,
+header, hgroup, main, nav, section, summary {
+    display: block;
+}
+
+/* --- Theme Variables (Light Mode Defaults) --- */
 :root {
-    --primary-bg-color: #f4f4f4;
-    --secondary-bg-color: #ffffff;
-    --text-color: #333;
-    --border-color: #ddd;
+    --bg-color: rgb(230, 230, 234); /* From original body background */
+    --text-color: black; /* From original article/body-container color, general links */
+    --heading-color: black; /* Assuming headings are black by default */
+    --container-bg: rgb(244, 244, 248); /* From original article/body-container background */
+    --border-color: #0056b3; /* Existing, used for results/categories borders */
+    --link-color: black; /* From original a:link */
+    --link-hover-bg: rgba(72, 61, 139, 0.75); /* From original a:hover */
+    --button-bg: #007bff; /* Existing blue */
+    --button-text: white; /* Existing */
+    --button-hover-bg: #0056b3; /* Existing */
+    --input-bg: #f9f9f9; /* Existing */
+    --input-border: #ccc; /* Existing */
+    --disclaimer-text: #555; /* Existing */
+}
+
+/* --- Dark Mode Variables --- */
+body.dark-mode {
+    --bg-color: rgb(30, 30, 34);
+    --text-color: #f0f0f0;
+    --heading-color: #f0f0f0;
+    --container-bg: rgb(40, 40, 44);
+    --border-color: #007bff; /* Keep blue for contrast */
+    --link-color: #87CEEB; /* Lighter blue for links */
+    --link-hover-bg: rgba(135, 206, 235, 0.2); /* Lighter hover background */
     --button-bg: #007bff;
     --button-text: white;
+    --button-hover-bg: #0056b3;
+    --input-bg: rgb(60, 60, 64);
+    --input-border: #555;
+    --disclaimer-text: #aaa;
 }
 
-body.dark-mode {
-    --primary-bg-color: #2c2c2c;
-    --secondary-bg-color: #3a3a3a;
-    --text-color: #f4f4f4;
-    --border-color: #555;
-    --button-bg: #0056b3;
-}
 
 body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 20px;
-    background-color: var(--primary-bg-color);
-    color: var(--text-color);
+    font-family: 'PT Serif', serif;
     line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg-color);
+    color: var(--text-color);
     transition: background-color 0.3s, color 0.3s;
 }
 
-header {
-    text-align: center;
-    margin-bottom: 30px;
-}
-
-h1 {
-    color: var(--text-color);
-    margin-bottom: 10px;
-}
-
-#theme-toggle {
-    padding: 8px 15px;
-    background-color: var(--button-bg);
-    color: var(--button-text);
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 0.9em;
-    transition: background-color 0.2s;
-}
-
-#theme-toggle:hover {
-    background-color: var(--button-bg); /* Darken slightly on hover */
-    filter: brightness(1.1); /* Lighter on hover */
-}
-
-/* --- CENTERING STYLES --- */
-
-/* Centers the entire filter section block */
-#filter-section {
-    max-width: 800px; /* Adjust width as needed */
-    margin: 20px auto; /* Centers horizontally, adds vertical margin */
+/* Base styles for article and main container */
+article, .body-container {
+    background-color: var(--container-bg);
+    margin: 20px auto;
     padding: 20px;
-    background-color: var(--secondary-bg-color);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    max-width: 900px;
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    display: flex; /* Use flexbox for internal layout */
-    flex-direction: column; /* Stack search input and categories vertically */
-    align-items: center; /* Center horizontally within #filter-section */
+    transition: background-color 0.3s;
 }
 
-.search-input-area {
-    width: 100%;
-    text-align: center; /* Center the label, input, button */
+article#mcstories {
+    text-align: center;
+}
+
+h3.title {
+    font-size: 2em;
+    margin-bottom: 0.2em;
+    color: var(--heading-color);
+    transition: color 0.3s;
+}
+
+h3.byline {
+    font-size: 1.2em;
+    color: var(--disclaimer-text);
+    margin-top: 0;
+    transition: color 0.3s;
+}
+
+section {
+    margin-bottom: 1em;
+    padding: 10px;
+    border: 1px solid var(--input-border);
+    border-radius: 5px;
+    background-color: var(--input-bg);
+    transition: background-color 0.3s, border-color 0.3s;
+}
+
+section h3 {
+    margin-top: 0;
+    color: var(--heading-color);
+    transition: color 0.3s;
+}
+
+section p {
+    color: var(--disclaimer-text);
+    transition: color 0.3s;
+}
+
+/* Theme Toggle Button */
+#theme-toggle {
+    background: none;
+    border: none;
+    font-size: 1.5em;
+    cursor: pointer;
+    color: var(--text-color);
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    transition: color 0.3s;
+}
+
+/* Adjust icon based on mode */
+body:not(.dark-mode) #theme-toggle::before { content: '☀️'; } /* Sun icon for light mode */
+body.dark-mode #theme-toggle::before { content: '🌙'; } /* Moon icon for dark mode */
+
+
+/* Search Container */
+.search-container {
+    display: flex;
     margin-bottom: 20px;
-}
-
-.search-input-area label {
-    margin-right: 10px;
+    border: 1px solid var(--border-color); /* Blue border added back */
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    background-color: var(--container-bg); /* Match body-container background */
+    /* NEW: Center content within search-container */
+    justify-content: center; /* Centers horizontally */
+    align-items: center; /* Centers vertically if elements have different heights */
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
 }
 
 #search-input {
-    padding: 8px;
-    border: 1px solid var(--border-color);
+    flex-grow: 1;
+    padding: 10px;
+    border: 1px solid var(--input-border);
     border-radius: 4px;
-    margin-right: 10px;
-    width: 60%; /* Adjust width as necessary */
-    max-width: 300px;
-    background-color: var(--primary-bg-color);
+    font-size: 1em;
+    background-color: var(--input-bg);
     color: var(--text-color);
+    transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+    max-width: 300px; /* Limit input width */
+    margin: 5px; /* Add margin around input */
 }
 
-.search-input-area button {
-    padding: 8px 15px;
+#search-button {
+    padding: 10px 15px;
+    margin-left: 10px;
     background-color: var(--button-bg);
     color: var(--button-text);
     border: none;
-    border-radius: 5px;
+    border-radius: 4px;
     cursor: pointer;
-    transition: background-color 0.2s;
+    font-size: 1em;
+    transition: background-color 0.3s;
+    margin: 5px; /* Add margin around button */
 }
 
-.search-input-area button:hover {
-    background-color: var(--button-bg);
-    filter: brightness(1.1);
+#search-button:hover {
+    background-color: var(--button-hover-bg);
 }
 
-/* Centers the category columns themselves */
-.category-columns-wrapper {
-    display: flex; /* Use flexbox to put columns side-by-side */
-    justify-content: center; /* Center the columns horizontally */
-    flex-wrap: wrap; /* Allow columns to wrap on smaller screens */
-    gap: 30px; /* Space between columns */
-    width: 100%; /* Take full width of parent */
+/* New: Center the "Filter Categories:" heading */
+.body-container h3 {
+    text-align: center;
+    margin-top: 20px; /* Add some space above */
+    margin-bottom: 15px; /* Add some space below */
+    color: var(--heading-color);
+    transition: color 0.3s;
 }
 
-.category-column {
-    background-color: var(--primary-bg-color);
+
+/* Category Filter Table Container */
+.category-filter-table {
+    border: 1px solid var(--border-color); /* Blue border for the whole box */
+    padding: 15px; /* Padding inside the box */
+    margin-bottom: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    background-color: var(--container-bg); /* Match body-container background */
+    transition: background-color 0.3s, border-color 0.3s;
+    /* This container is already centered by body-container's margin: auto */
+}
+
+/* New wrapper for two tables using Flexbox */
+.category-tables-wrapper {
+    display: flex;
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    justify-content: center; /* Changed from space-around to center for tighter grouping */
+    gap: 20px; /* Space between the two tables */
+}
+
+.category-filter-table table {
+    width: 100%; /* Default to full width for small screens */
+    max-width: 45%; /* Each table takes roughly half the width on larger screens */
+    flex: 1 1 45%; /* Grow, shrink, base width for flex items */
+    border-collapse: collapse;
+    border: none; /* No outer table border */
+    /* Tables themselves are centered by category-tables-wrapper's justify-content */
+}
+
+@media (max-width: 768px) {
+    .category-filter-table table {
+        max-width: 100%; /* Stack tables on smaller screens */
+        flex: 1 1 100%;
+    }
+}
+
+.category-filter-table th,
+.category-filter-table td {
+    padding: 8px 10px;
+    border: none; /* No cell borders */
+    text-align: center; /* NEW: Center text in table headers and data cells */
+    vertical-align: top;
+    background-color: var(--container-bg); /* Ensure consistent background */
+}
+
+.category-filter-table th {
+    background-color: var(--button-hover-bg); /* Darker header background */
+    color: white;
+    font-weight: bold;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3); /* Slight separator for header */
+}
+
+/* Ensure labels and checkboxes align nicely */
+.category-filter-table td label {
+    margin-right: 10px;
+    white-space: nowrap; /* Keep label on one line */
+    color: var(--text-color);
+}
+
+.category-filter-table input[type="checkbox"] {
+    margin-right: 5px;
+}
+
+
+/* Results Container */
+#results-container {
+    border: 1px solid var(--border-color); /* Blue border added back */
     padding: 15px;
     border-radius: 8px;
-    border: 1px solid var(--border-color);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    min-width: 200px; /* Minimum width for each column */
-    max-width: 300px; /* Maximum width for each column */
-    flex-grow: 1; /* Allow columns to grow */
-    text-align: left; /* Keep text aligned left within column */
-}
-
-.category-column h4 {
-    margin-top: 0;
-    color: var(--text-color);
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 5px;
-    margin-bottom: 10px;
-    text-align: center; /* Center the heading of the column */
-}
-
-.category-column label {
-    display: block; /* Make labels block for better spacing */
-    margin-bottom: 5px;
-    cursor: pointer;
-}
-
-.category-column input[type="checkbox"] {
-    margin-right: 8px;
-}
-
-/* Centers the results container block */
-#results-container {
-    max-width: 900px; /* Adjust width as needed, usually wider than filters */
-    margin: 30px auto; /* Centers horizontally, adds vertical margin */
-    padding: 20px;
-    background-color: var(--secondary-bg-color);
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    background-color: var(--container-bg); /* Match body-container background */
+    text-align: center; /* Center block elements inside like "No stories found" message */
+    /* This container is already centered by body-container's margin: auto */
 }
 
 #results-container ul {
-    list-style: none; /* Remove default list bullets */
+    list-style: none;
     padding: 0;
-    margin: 0;
-}
-
-/* Centers content within each story item */
-.story-item {
     display: flex;
-    flex-direction: column; /* Stack elements vertically */
-    align-items: center; /* Centers items horizontally within the li */
-    margin-bottom: 20px;
-    padding: 15px;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    background-color: var(--primary-bg-color);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-    text-align: center; /* Fallback for text alignment */
+    flex-direction: column;
+    align-items: center; /* Centers list items horizontally within the ul */
+    margin: 0; /* Remove default ul margin */
 }
 
-.story-item:last-child {
-    margin-bottom: 0; /* No margin after the last item */
+#results-container li {
+    background-color: var(--input-bg);
+    border: 1px solid var(--input-border);
+    border-radius: 5px;
+    margin-bottom: 10px;
+    padding: 10px;
+    max-width: 700px; /* Limit width of individual result items */
+    width: 100%; /* Ensure it takes available width up to max-width */
+    box-sizing: border-box; /* Include padding/border in width */
+    text-align: left; /* Reset text alignment for content inside li */
+    transition: background-color 0.3s, border-color 0.3s;
+}
+
+#results-container li:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .story-header {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: center; /* Center elements within the header */
-    align-items: center;
-    width: 100%;
-    margin-bottom: 10px;
+    flex-wrap: wrap; /* Allow title and categories to wrap */
+    align-items: baseline;
+    justify-content: center; /* NEW: Center title and categories within the header */
+    margin-bottom: 5px;
 }
 
 .story-header a {
-    font-size: 1.2em;
     font-weight: bold;
-    color: var(--button-bg); /* Use primary button color for links */
+    color: var(--link-color);
     text-decoration: none;
-    margin-right: 5px;
+    margin-right: 10px;
+    transition: color 0.3s;
 }
 
 .story-header a:hover {
     text-decoration: underline;
+    background-color: var(--link-hover-bg);
 }
 
 .story-categories {
     font-size: 0.9em;
-    color: #666; /* Softer color for categories */
-    margin-left: 5px;
+    color: var(--disclaimer-text);
+    white-space: nowrap; /* Keep categories on one line */
 }
-body.dark-mode .story-categories {
-    color: #bbb;
-}
-
 
 .story-synopsis {
-    margin-top: 10px;
-    padding: 10px;
-    background-color: var(--secondary-bg-color);
-    border: 1px solid var(--border-color);
-    border-radius: 5px;
-    font-size: 0.95em;
+    font-size: 0.9em;
     color: var(--text-color);
-    text-align: justify; /* Justify synopsis text for better readability */
+    margin-top: 10px;
+    padding-left: 10px;
+    border-left: 2px solid var(--border-color);
     display: none; /* Hidden by default */
-    width: 90%; /* Occupy most of the story item's width */
-    max-width: 600px; /* Prevent it from becoming too wide */
+    background-color: var(--container-bg); /* Slightly different background for synopsis */
+    padding: 8px;
+    border-radius: 4px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    transition: background-color 0.3s;
+    text-align: justify; /* NEW: Justify synopsis text for better readability */
 }
 
 .toggle-synopsis, .read-more-button {
-    padding: 8px 15px;
+    padding: 5px 10px;
+    margin-right: 10px;
+    margin-top: 10px;
     background-color: var(--button-bg);
     color: var(--button-text);
     border: none;
-    border-radius: 5px;
+    border-radius: 4px;
     cursor: pointer;
     font-size: 0.9em;
-    margin: 5px; /* Spacing between buttons */
-    transition: background-color 0.2s;
+    transition: background-color 0.3s;
 }
 
 .toggle-synopsis:hover, .read-more-button:hover {
-    background-color: var(--button-bg);
-    filter: brightness(1.1);
+    background-color: var(--button-hover-bg);
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    #filter-section, #results-container {
-        padding: 15px;
-        margin: 15px auto;
-    }
-    .search-input-area {
-        flex-direction: column;
-        align-items: center;
-    }
-    #search-input {
-        width: 80%;
-        margin-right: 0;
-        margin-bottom: 10px;
-    }
-    .category-columns-wrapper {
-        flex-direction: column; /* Stack columns vertically on small screens */
-        gap: 15px;
-    }
-    .category-column {
-        min-width: unset;
-        max-width: 100%;
-        width: 100%;
-    }
-}
+/* Ensure the dark mode toggles theme toggle icon */
+body.dark-mode #theme-toggle {
+    color: var(--text
