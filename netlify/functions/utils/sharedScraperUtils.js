@@ -1,7 +1,7 @@
 // netlify/functions/utils/sharedScraperUtils.js
 const axios = require('axios');
 const cheerio = require('cheerio');
-const excludedLinks = require('../../excludedLinks'); // Ensure this path is correct
+const excludedLinks = require('../../../excludedLinks'); // Ensure this path is correct
 
 async function scrapeWebsite(url, searchQuery = '') {
     try {
