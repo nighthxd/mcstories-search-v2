@@ -5,7 +5,6 @@ const { tags } = require('../../categories');
 const { scrapeWebsite } = require('./utils/sharedScraperUtils');
 const { Pool } = require('pg');
 
-// Initialize a connection pool outside the handler
 let pool;
 
 async function ensureDbInitialized() {
@@ -35,138 +34,133 @@ async function ensureDbInitialized() {
             console.log('Database table "stories" ensured to exist.');
             client.release();
         } catch (err) {
-            console.error('Failed to connect to DB or create "stories" table:', err);
-            pool = null;
-            throw new Error('Database initialization for stories failed.');
+            console.error('Error ensuring DB initialized:', err);
+            throw err;
         }
     }
-    return pool;
 }
 
 exports.handler = async (event, context) => {
-    const selectedTags = event.queryStringParameters.tags;
-    const searchQuery = event.queryStringParameters.query || '';
-    let client;
-
-    if (!selectedTags) {
-        return {
-            statusCode: 400,
-            body: JSON.stringify({ error: 'No categories selected' }),
-        };
-    }
-
-    const tagArray = selectedTags.split(',');
+    await ensureDbInitialized();
+    const client = await pool.connect();
 
     try {
-        const dbPool = await ensureDbInitialized();
-        client = await dbPool.connect();
+        const tagsParam = event.queryStringParameters.tags;
+        const query = event.queryStringParameters.query || '';
+        const excludeTagsParam = event.queryStringParameters.exclude_tags; // New: Get exclude_tags parameter
 
-        // --- Caching Logic: Try to fetch from DB first ---
-        let cachedStories = [];
-        const CACHE_LIFETIME_HOURS = 24; // Define how long results are considered fresh
-
-        try {
-            // Adjust cache query for category search
-            // This query assumes stories are cached with all their categories
-            // It will find stories that match ALL selected tags AND the search query
-            const cacheQuery = `
-                SELECT title, url, categories
-                FROM stories
-                WHERE ($1 = '' OR title ILIKE $1)
-                  AND categories @> $2::text[]
-                  AND last_scraped_at >= NOW() - INTERVAL '${CACHE_LIFETIME_HOURS} hours';
-            `;
-            // If searchQuery is empty, use '%%' to match all titles.
-            const queryParamSearch = searchQuery ? `%${searchQuery}%` : '';
-
-            const { rows } = await client.query(cacheQuery, [queryParamSearch, tagArray]);
-
-            // --- LOGGING FOR DEBUGGING CATEGORY CACHE ---
-            console.log("Cache query for tags:", selectedTags, "query:", searchQuery);
-            console.log("Database rows found for cache:", rows.length);
-            // console.log("First 5 cached rows:", rows.slice(0, 5)); // Uncomment this line if you want to see actual data snippet for rows
-            // --- END LOGGING ---
-
-            cachedStories = rows.map(row => ({
-                title: row.title,
-                link: row.url,
-                categories: row.categories || []
-            }));
-
-            if (cachedStories.length > 0) {
-                console.log(`Returning ${cachedStories.length} stories from cache for tags: "${selectedTags}" and query: "${searchQuery}"`);
-                return {
-                    statusCode: 200,
-                    body: JSON.stringify(cachedStories),
-                };
-            }
-            console.log(`No fresh cached results for tags: "${selectedTags}" and query: "${searchQuery}". Proceeding to scrape.`);
-
-        } catch (cacheError) {
-            console.error('Error fetching from cache, proceeding with scrape:', cacheError.message);
-            // If there's a cache error, just proceed to scrape
+        let includedTags = [];
+        if (tagsParam) {
+            includedTags = tagsParam.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
         }
-        // --- End Caching Logic ---
 
+        let excludedTags = []; // New: Initialize excludedTags array
+        if (excludeTagsParam) {
+            excludedTags = excludeTagsParam.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+        }
 
-        // --- Original Scraping Logic (Fall-back if no cache hit) ---
-        const urlsToScrape = tagArray.map(tag => tags[tag]).filter(url => url);
+        let cacheWhereClause = 'WHERE TRUE';
+        let cacheQueryParams = [];
+        let paramIndex = 1;
 
-        if (urlsToScrape.length === 0) {
+        if (includedTags.length > 0) {
+            cacheWhereClause += ` AND categories @> $${paramIndex++}::text[]`;
+            cacheQueryParams.push(includedTags);
+        }
+        if (query) {
+            cacheWhereClause += ` AND title ILIKE $${paramIndex++}`;
+            cacheQueryParams.push(`%${query}%`);
+        }
+        // New: Add exclusion to cache query
+        if (excludedTags.length > 0) {
+            cacheWhereClause += ` AND NOT (categories && $${paramIndex++}::text[])`;
+            cacheQueryParams.push(excludedTags);
+        }
+
+        const cacheKey = `${tagsParam || ''}:${query}:${excludeTagsParam || ''}`; // New: Include excludeTagsParam in cache key
+        const cacheQuery = `SELECT title, url, categories FROM stories ${cacheWhereClause} AND last_scraped_at > NOW() - INTERVAL '1 hour'`;
+        const cacheResult = await client.query(cacheQuery, cacheQueryParams);
+
+        console.log(`Cache query for tags: ${tagsParam || ''} query: ${query || ''} exclude: ${excludeTagsParam || ''}`); // Updated log
+        console.log(`Database rows found for cache: ${cacheResult.rows.length}`);
+
+        if (cacheResult.rows.length > 0) {
+            console.log(`Returning ${cacheResult.rows.length} stories from cache for tags: "${tagsParam || ''}" and query: "${query || ''}"`); // Updated log
             return {
-                statusCode: 404,
-                body: JSON.stringify({ error: 'No valid category URLs found' }),
+                statusCode: 200,
+                body: JSON.stringify(cacheResult.rows),
             };
         }
 
-        const allStoriesPerTag = await Promise.all(
-            urlsToScrape.map(url => scrapeWebsite(url, searchQuery))
-        );
+        console.log(`No fresh cached results for tags: "${tagsParam || ''}" and query: "${query || ''}". Proceeding to scrape.`); // Updated log
 
-        let finalStories = [];
+        let uniqueStories = [];
+        // Scrape for each included tag
+        for (const tag of includedTags) {
+            const urlToScrape = `https://mcstories.com/Tags/${tag}.html`;
+            const scrapedStories = await scrapeWebsite(urlToScrape, query); // scrapeWebsite already handles the query filter internally
 
-        if (tagArray.length === 1) {
-            finalStories = allStoriesPerTag.flat();
-        } else {
-            if (allStoriesPerTag.length > 0) {
-                let commonStories = allStoriesPerTag[0];
-
-                for (let i = 1; i < allStoriesPerTag.length; i++) {
-                    const currentTagStories = allStoriesPerTag[i];
-                    commonStories = commonStories.filter(story =>
-                        currentTagStories.some(s => s.title === story.title)
-                    );
-                    if (commonStories.length === 0) break;
+            scrapedStories.forEach(story => {
+                // Ensure story is not already in uniqueStories array based on URL
+                if (!uniqueStories.some(s => s.link === story.link)) {
+                    uniqueStories.push(story);
                 }
-                finalStories = commonStories;
-            }
+            });
+        }
+        // If no specific tags, scrape the main page (or handle as per your logic)
+        if (includedTags.length === 0 && !query) {
+             const scrapedMainPageStories = await scrapeWebsite('https://mcstories.com/index.html');
+             scrapedMainPageStories.forEach(story => {
+                 if (!uniqueStories.some(s => s.link === story.link)) {
+                     uniqueStories.push(story);
+                 }
+             });
+        } else if (includedTags.length === 0 && query) {
+            // If only query, but no tags, scrape main index and filter by query
+            const scrapedMainPageStories = await scrapeWebsite('https://mcstories.com/index.html', query);
+             scrapedMainPageStories.forEach(story => {
+                 if (!uniqueStories.some(s => s.link === story.link)) {
+                     uniqueStories.push(story);
+                 }
+             });
         }
 
-        const finalUniqueStories = [];
-        const uniqueTitles = new Set();
-        for (const story of finalStories) {
-            if (!uniqueTitles.has(story.title)) {
-                uniqueTitles.add(story.title);
-                finalUniqueStories.push(story);
 
-                // --- Store/Update story in database ---
-                try {
-                    await client.query(
-                        `INSERT INTO stories (title, url, categories)
-                         VALUES ($1, $2, $3)
-                         ON CONFLICT (url) DO UPDATE SET
-                             title = EXCLUDED.title,
-                             categories = EXCLUDED.categories,
-                             last_scraped_at = CURRENT_TIMESTAMP`,
-                        [story.title, story.link, story.categories]
-                    );
-                } catch (dbError) {
-                    console.error(`Error saving story "${story.title}" to DB during scrape fallback:`, dbError.message);
-                }
-                // --- End DB storage ---
+        // New: Apply filtering for tags, query, AND EXCLUDED TAGS to scraped results before saving/returning
+        let finalUniqueStories = uniqueStories.filter(story => {
+            const storyCategories = story.categories || [];
+
+            // Filter by included tags (if any were specified)
+            const includesAllTags = includedTags.length === 0 || includedTags.every(tag => storyCategories.includes(tag));
+
+            // Filter by query (if any was specified) - note: scrapeWebsite already filters by query but
+            // this acts as a final safeguard/re-filter, especially if query was part of initial scrape.
+            // If scrapeWebsite only fetches all stories and relies on this filter, then this is essential.
+            const matchesQuery = query === '' || story.title.toLowerCase().includes(query.toLowerCase());
+
+            // Filter by excluded tags (NEW)
+            const excludesAnyTags = excludedTags.length > 0 && excludedTags.some(tag => storyCategories.includes(tag));
+
+            return includesAllTags && matchesQuery && !excludesAnyTags; // Story must NOT include any excluded tags
+        });
+
+
+        // Store/Update story in database
+        for (const story of finalUniqueStories) {
+            try {
+                await client.query(
+                    `INSERT INTO stories (title, url, categories)
+                     VALUES ($1, $2, $3)
+                     ON CONFLICT (url) DO UPDATE SET
+                         title = EXCLUDED.title,
+                         categories = EXCLUDED.categories,
+                         last_scraped_at = CURRENT_TIMESTAMP`,
+                    [story.title, story.link, story.categories]
+                );
+            } catch (dbError) {
+                console.error(`Error saving story "${story.title}" to DB:`, dbError.message);
             }
         }
-        // --- End Original Scraping Logic ---
 
         return {
             statusCode: 200,
