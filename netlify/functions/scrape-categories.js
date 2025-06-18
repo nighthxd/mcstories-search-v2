@@ -1,8 +1,8 @@
 // netlify/functions/scrape-categories.js
 const axios = require('axios');
-const cheerio = require('cheerio'); // Still used by sharedScraperUtils, but not directly here anymore
+const cheerio = require('cheerio');
 const { tags } = require('../../categories'); // Corrected path
-const { scrapeWebsite } = require('./utils/sharedScraperUtils'); // Correctly imports updated scrapeWebsite
+const { scrapeWebsite } = require('./utils/sharedScraperUtils'); // Corrected path
 const { Pool } = require('pg'); // PostgreSQL client library
 
 // Initialize a connection pool outside the handler
