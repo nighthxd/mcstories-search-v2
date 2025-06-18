@@ -4,6 +4,10 @@ const cheerio = require('cheerio');
 const excludedLinks = require('../../../excludedLinks');
 
 async function scrapeWebsite(url, searchQuery = '') {
+    // --- ADD THIS LOG LINE HERE ---
+    console.log(`Starting scrapeWebsite for URL: ${url} with query: ${searchQuery}`);
+    // --- END LOG LINE ---
+
     try {
         const { data } = await axios.get(url, { timeout: 10000 });
         const $ = cheerio.load(data);
@@ -30,18 +34,19 @@ async function scrapeWebsite(url, searchQuery = '') {
                 });
             }
 
-            // --- ADD THIS LOG LINE HERE ---
             console.log(`Scraped story: "${title}", URL: "${fullLink}", Categories:`, categories);
-            // --- END LOG LINE ---
 
             if (title && link && !isAuthorOrTagPage && !isExcluded && matchesQuery) {
                 stories.push({ title, link: fullLink, categories: categories });
             }
         });
 
+        // --- ADD THIS LOG LINE HERE ---
+        console.log(`Finished scrapeWebsite for URL: ${url}. Found ${stories.length} stories.`);
+        // --- END LOG LINE ---
         return stories;
     } catch (error) {
-        console.error(`Error scraping ${url}:`, error);
+        console.error(`Error scraping ${url}:`, error); // This log should appear if there's an Axios or Cheerio error
         return [];
     }
 }
