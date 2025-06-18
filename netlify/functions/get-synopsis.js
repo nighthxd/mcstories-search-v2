@@ -19,26 +19,29 @@ exports.handler = async (event, context) => {
 
         let synopsis = 'Synopsis not available yet.'; // Default placeholder
 
-        // Attempt to extract synopsis from the story text.
-        // Common selectors for synopsis/story body on mcstories.com:
-        // #storytext, .panel-body, or initial <p> tags within main content.
-        const storyContentDiv = $('#storytext, .panel-body').first(); 
+        // --- CORRECTED SELECTOR ---
+        // Prioritize 'section.synopsis' as it's directly from the provided HTML.
+        // Keep other selectors as fallbacks for different page layouts if they exist.
+        const storyContentDiv = $('section.synopsis, div#storytext, div.panel-body, div#content, div.story-content, article.story-article, .main-content-area').first(); 
+        // --- END CORRECTED SELECTOR ---
+
         if (storyContentDiv.length > 0) {
-            // Take the text content of the first few paragraphs or a limited length
+            // Attempt to get text from first paragraph, or directly from the div, then clean up
             let rawSynopsis = storyContentDiv.find('p').first().text().trim();
-            if (!rawSynopsis) { // If no <p> inside, get text directly from the div
+            if (!rawSynopsis) { 
+                // If no <p> inside, or <p> is empty, get text directly from the selected div
                 rawSynopsis = storyContentDiv.text().trim();
             }
 
-            // Limit synopsis length and clean up extra newlines/spaces
-            synopsis = rawSynopsis.substring(0, 1000).replace(/\s+/g, ' '); // Limit to 1000 chars, collapse whitespace
+            // Clean up multiple spaces and newlines, limit length
+            synopsis = rawSynopsis.replace(/\s+/g, ' ').substring(0, 1000); 
             if (rawSynopsis.length > 1000) {
                 synopsis += '...'; // Add ellipsis if truncated
             } else if (rawSynopsis.length === 0) {
-                synopsis = 'No synopsis found on story page.';
+                synopsis = 'No synopsis text found within the identified content area.';
             }
         } else {
-            synopsis = 'Could not locate story content on page.';
+            synopsis = 'Could not locate the main story content area on this page (selector mismatch).';
         }
 
         return {
