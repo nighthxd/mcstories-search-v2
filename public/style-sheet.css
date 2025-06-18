@@ -20,267 +20,197 @@ header, hgroup, main, nav, section, summary {
     --button-bg: #007bff; /* Existing blue */
     --button-text: white; /* Existing */
     --button-hover-bg: #0056b3; /* Existing */
-    --input-bg: #f9f9f9; /* Existing */
-    --input-border: #ccc; /* Existing */
-    --disclaimer-text: #555; /* Existing */
+    --input-bg: white; /* For search input background */
+    --input-border: #ccc; /* For search input border */
+    --toggle-bg: #ccc; /* For theme toggle background */
+    --toggle-circle: #fff; /* For theme toggle circle */
+    --table-bg: var(--container-bg); /* Table background */
+    --table-border: #ddd; /* Table border */
+    --table-header-bg: #f2f2f2; /* Table header background */
+    --disclaimer-text: #666; /* Disclaimer text color */
 }
 
 /* --- Dark Mode Variables --- */
 body.dark-mode {
     --bg-color: rgb(30, 30, 34);
-    --text-color: #f0f0f0;
-    --heading-color: #f0f0f0;
+    --text-color: rgb(200, 200, 200);
+    --heading-color: rgb(220, 220, 220);
     --container-bg: rgb(40, 40, 44);
-    --border-color: #007bff; /* Keep blue for contrast */
-    --link-color: #87CEEB; /* Lighter blue for links */
-    --link-hover-bg: rgba(135, 206, 235, 0.2); /* Lighter hover background */
-    --button-bg: #007bff;
+    --border-color: #0099ff;
+    --link-color: rgb(150, 200, 255);
+    --link-hover-bg: rgba(100, 150, 200, 0.75);
+    --button-bg: #0056b3;
     --button-text: white;
-    --button-hover-bg: #0056b3;
-    --input-bg: rgb(60, 60, 64);
-    --input-border: #555;
+    --button-hover-bg: #003366;
+    --input-bg: rgb(50, 50, 54);
+    --input-border: #666;
+    --toggle-bg: #555;
+    --toggle-circle: #bbb;
+    --table-bg: var(--container-bg);
+    --table-border: #555;
+    --table-header-bg: #333;
     --disclaimer-text: #aaa;
 }
 
-
+/* Body & Layout */
 body {
     font-family: 'PT Serif', serif;
     line-height: 1.6;
     margin: 0;
-    padding: 0;
+    padding: 20px;
     background-color: var(--bg-color);
     color: var(--text-color);
     transition: background-color 0.3s, color 0.3s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
 }
 
-/* Base styles for article and main container */
-article, .body-container {
+.body-container {
     background-color: var(--container-bg);
-    margin: 20px auto;
-    padding: 20px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    max-width: 900px;
+    padding: 20px 30px;
     border-radius: 8px;
-    transition: background-color 0.3s;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    max-width: 900px;
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    border: 1px solid var(--border-color);
+    transition: background-color 0.3s, border-color 0.3s, box-shadow 0.3s;
 }
 
-article#mcstories {
-    text-align: center;
-}
-
-h3.title {
-    font-size: 2em;
-    margin-bottom: 0.2em;
+/* Headers */
+h3 {
     color: var(--heading-color);
+    text-align: center;
+    margin-bottom: 15px;
     transition: color 0.3s;
 }
 
-h3.byline {
-    font-size: 1.2em;
-    color: var(--disclaimer-text);
-    margin-top: 0;
-    transition: color 0.3s;
-}
-
+/* Disclaimers */
 section {
-    margin-bottom: 1em;
-    padding: 10px;
-    border: 1px solid var(--input-border);
+    background-color: var(--container-bg);
+    border: 1px solid var(--border-color);
+    padding: 15px;
+    margin-bottom: 20px;
     border-radius: 5px;
-    background-color: var(--input-bg);
     transition: background-color 0.3s, border-color 0.3s;
 }
 
 section h3 {
+    font-size: 1.2em;
     margin-top: 0;
+    margin-bottom: 10px;
     color: var(--heading-color);
     transition: color 0.3s;
 }
 
 section p {
+    font-size: 0.9em;
     color: var(--disclaimer-text);
     transition: color 0.3s;
 }
 
-/* Theme Toggle Button */
-#theme-toggle {
-    background: none;
-    border: none;
-    font-size: 1.5em;
-    cursor: pointer;
-    color: var(--text-color);
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    transition: color 0.3s;
-}
-
-/* Adjust icon based on mode */
-body:not(.dark-mode) #theme-toggle::before { content: '☀️'; } /* Sun icon for light mode */
-body.dark-mode #theme-toggle::before { content: '🌙'; } /* Moon icon for dark mode */
-
-
-/* Search Container */
+/* Search Bar */
 .search-container {
     display: flex;
+    justify-content: center;
     margin-bottom: 20px;
-    border: 1px solid var(--border-color); /* Blue border added back */
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    background-color: var(--container-bg); /* Match body-container background */
-    /* NEW: Center content within search-container */
-    justify-content: center; /* Centers horizontally */
-    align-items: center; /* Centers vertically if elements have different heights */
-    flex-wrap: wrap; /* Allow wrapping on smaller screens */
 }
 
 #search-input {
-    flex-grow: 1;
+    width: 70%;
     padding: 10px;
     border: 1px solid var(--input-border);
-    border-radius: 4px;
+    border-radius: 5px 0 0 5px;
     font-size: 1em;
     background-color: var(--input-bg);
     color: var(--text-color);
-    transition: background-color 0.3s, border-color 0.3s, color 0.3s;
-    max-width: 300px; /* Limit input width */
-    margin: 5px; /* Add margin around input */
+    transition: background-color 0.3s, color 0.3s, border-color 0.3s;
 }
 
 #search-button {
     padding: 10px 15px;
-    margin-left: 10px;
     background-color: var(--button-bg);
     color: var(--button-text);
     border: none;
-    border-radius: 4px;
+    border-radius: 0 5px 5px 0;
     cursor: pointer;
     font-size: 1em;
     transition: background-color 0.3s;
-    margin: 5px; /* Add margin around button */
 }
 
 #search-button:hover {
     background-color: var(--button-hover-bg);
 }
 
-/* New: Center the "Filter Categories:" heading */
-.body-container h3 {
-    text-align: center;
-    margin-top: 20px; /* Add some space above */
-    margin-bottom: 15px; /* Add some space below */
-    color: var(--heading-color);
-    transition: color 0.3s;
-}
-
-
-/* Category Filter Table Container */
-.category-filter-table {
-    border: 1px solid var(--border-color); /* Blue border for the whole box */
-    padding: 15px; /* Padding inside the box */
+/* Categories Table */
+.category-filters-container {
     margin-bottom: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    background-color: var(--container-bg); /* Match body-container background */
+    overflow-x: auto; /* Allow horizontal scrolling if table is too wide */
+}
+
+.category-table {
+    width: 100%; /* Make table fill container */
+    border-collapse: collapse; /* Remove space between borders */
+    margin-bottom: 20px; /* Space after table */
+    background-color: var(--table-bg);
+    border: 1px solid var(--table-border);
     transition: background-color 0.3s, border-color 0.3s;
-    /* This container is already centered by body-container's margin: auto */
 }
 
-/* New wrapper for two tables using Flexbox */
-.category-tables-wrapper {
-    display: flex;
-    flex-wrap: wrap; /* Allow wrapping on smaller screens */
-    justify-content: center; /* Changed from space-around to center for tighter grouping */
-    gap: 20px; /* Space between the two tables */
-}
-
-.category-filter-table table {
-    width: 100%; /* Default to full width for small screens */
-    max-width: 45%; /* Each table takes roughly half the width on larger screens */
-    flex: 1 1 45%; /* Grow, shrink, base width for flex items */
-    border-collapse: collapse;
-    border: none; /* No outer table border */
-    /* Tables themselves are centered by category-tables-wrapper's justify-content */
-}
-
-@media (max-width: 768px) {
-    .category-filter-table table {
-        max-width: 100%; /* Stack tables on smaller screens */
-        flex: 1 1 100%;
-    }
-}
-
-.category-filter-table th,
-.category-filter-table td {
-    padding: 8px 10px;
-    border: none; /* No cell borders */
-    text-align: center; /* NEW: Center text in table headers and data cells */
-    vertical-align: top;
-    background-color: var(--container-bg); /* Ensure consistent background */
-}
-
-.category-filter-table th {
-    background-color: var(--button-hover-bg); /* Darker header background */
-    color: white;
-    font-weight: bold;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.3); /* Slight separator for header */
-}
-
-/* Ensure labels and checkboxes align nicely */
-.category-filter-table td label {
-    margin-right: 10px;
-    white-space: nowrap; /* Keep label on one line */
+.category-table th, .category-table td {
+    border: 1px solid var(--table-border);
+    padding: 8px;
+    text-align: center;
+    vertical-align: middle;
     color: var(--text-color);
+    transition: color 0.3s, border-color 0.3s;
 }
 
-.category-filter-table input[type="checkbox"] {
-    margin-right: 5px;
+.category-table th {
+    background-color: var(--table-header-bg);
+    font-weight: bold;
+    color: var(--heading-color);
+    transition: background-color 0.3s, color 0.3s;
 }
 
+.category-table label {
+    margin-right: 5px; /* Space between label and checkbox */
+    white-space: nowrap; /* Prevent labels from wrapping */
+}
 
 /* Results Container */
 #results-container {
-    border: 1px solid var(--border-color); /* Blue border added back */
+    margin-top: 20px;
+    border: 1px solid var(--border-color);
     padding: 15px;
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    background-color: var(--container-bg); /* Match body-container background */
-    text-align: center; /* Center block elements inside like "No stories found" message */
-    /* This container is already centered by body-container's margin: auto */
+    background-color: var(--container-bg);
+    min-height: 100px; /* Give some initial height */
+    transition: background-color 0.3s, border-color 0.3s;
 }
 
 #results-container ul {
     list-style: none;
     padding: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center; /* Centers list items horizontally within the ul */
-    margin: 0; /* Remove default ul margin */
 }
 
 #results-container li {
-    background-color: var(--input-bg);
-    border: 1px solid var(--input-border);
-    border-radius: 5px;
+    background-color: var(--container-bg);
+    border: 1px solid var(--border-color);
     margin-bottom: 10px;
     padding: 10px;
-    max-width: 700px; /* Limit width of individual result items */
-    width: 100%; /* Ensure it takes available width up to max-width */
-    box-sizing: border-box; /* Include padding/border in width */
-    text-align: left; /* Reset text alignment for content inside li */
+    border-radius: 5px;
     transition: background-color 0.3s, border-color 0.3s;
-}
-
-#results-container li:hover {
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .story-header {
     display: flex;
     flex-wrap: wrap; /* Allow title and categories to wrap */
     align-items: baseline;
-    justify-content: center; /* NEW: Center title and categories within the header */
     margin-bottom: 5px;
 }
 
@@ -300,7 +230,10 @@ body.dark-mode #theme-toggle::before { content: '🌙'; } /* Moon icon for dark 
 .story-categories {
     font-size: 0.9em;
     color: var(--disclaimer-text);
-    white-space: nowrap; /* Keep categories on one line */
+    white-space: nowrap;
+    /* --- START CHANGE FOR CATEGORY LINE BREAK --- */
+    display: block; /* Make it take its own line */
+    /* --- END CHANGE FOR CATEGORY LINE BREAK --- */
 }
 
 .story-synopsis {
@@ -316,13 +249,13 @@ body.dark-mode #theme-toggle::before { content: '🌙'; } /* Moon icon for dark 
     margin-top: 5px;
     margin-bottom: 5px;
     transition: background-color 0.3s;
-    text-align: justify; /* NEW: Justify synopsis text for better readability */
+    text-align: justify;
 }
 
 .toggle-synopsis, .read-more-button {
     padding: 5px 10px;
-    margin-right: 10px;
-    margin-top: 10px;
+    margin-top: 5px;
+    margin-right: 5px;
     background-color: var(--button-bg);
     color: var(--button-text);
     border: none;
@@ -336,6 +269,35 @@ body.dark-mode #theme-toggle::before { content: '🌙'; } /* Moon icon for dark 
     background-color: var(--button-hover-bg);
 }
 
-/* Ensure the dark mode toggles theme toggle icon */
-body.dark-mode #theme-toggle {
-    color: var(--text
+/* Theme Toggle Button */
+#theme-toggle {
+    background-color: var(--toggle-bg);
+    border: none;
+    border-radius: 20px;
+    width: 60px;
+    height: 30px;
+    cursor: pointer;
+    position: fixed; /* Fixed position */
+    top: 20px;
+    right: 20px;
+    display: flex;
+    align-items: center;
+    padding: 0 5px;
+    box-sizing: border-box;
+    transition: background-color 0.3s;
+    z-index: 1000; /* Ensure it's above other content */
+}
+
+#theme-toggle::before {
+    content: '';
+    display: block;
+    width: 20px;
+    height: 20px;
+    background-color: var(--toggle-circle);
+    border-radius: 50%;
+    transition: transform 0.3s, background-color 0.3s;
+}
+
+body.dark-mode #theme-toggle::before {
+    transform: translateX(30px); /* Move circle to the right for dark mode */
+}
