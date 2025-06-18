@@ -57,12 +57,9 @@ async function handleSearchClick() {
     // Otherwise, use 'scrape-categories' for tag-specific searches.
     let endpoint = '/.netlify/functions/scrape-categories';
     if (!includedTags.length && !excludedTags.length && query) {
-        // If only a search query and no category filters, use the general scrape function
-        // Note: You might need to adjust your 'scrape' function to handle query-only searches effectively if it currently assumes all URLs from 'searchall'.
         endpoint = '/.netlify/functions/scrape';
     } else if (!includedTags.length && !excludedTags.length && !query) {
-        // Handle case where no filters are selected, maybe return all or show message
-        resultsContainer.innerHTML = '<p>Please select categories, enter a search term, or both.</p>';
+        resultsContainer.innerHTML = '<p>Please select categories, enter a search term, or both to see results.</p>';
         return;
     }
 
@@ -85,20 +82,54 @@ async function handleSearchClick() {
             const ul = document.createElement('ul');
             stories.forEach(story => {
                 const li = document.createElement('li');
-                const a = document.createElement('a');
-                a.href = story.url; // Use story.url from the backend
-                a.textContent = story.title;
-                a.target = "_blank"; // Open in new tab
 
-                li.appendChild(a);
+                // Story Header: Title and Categories
+                const storyHeader = document.createElement('div');
+                storyHeader.className = 'story-header';
 
-                // Display categories if available
+                const titleLink = document.createElement('a');
+                titleLink.href = story.url;
+                titleLink.textContent = story.title;
+                titleLink.target = "_blank"; // Open in new tab
+                storyHeader.appendChild(titleLink);
+
                 if (story.categories && story.categories.length > 0) {
                     const categoriesSpan = document.createElement('span');
                     categoriesSpan.className = 'story-categories';
                     categoriesSpan.textContent = ` (${story.categories.join(', ').toLowerCase()})`;
-                    li.appendChild(categoriesSpan);
+                    storyHeader.appendChild(categoriesSpan);
                 }
+                li.appendChild(storyHeader);
+
+                // Synopsis (placeholder as backend doesn't provide it yet)
+                const synopsisDiv = document.createElement('div');
+                synopsisDiv.className = 'story-synopsis';
+                // Note: The backend does not currently provide synopsis content.
+                // This is a placeholder. You would need to modify your Netlify function(s)
+                // to scrape and return synopsis content for this to be dynamic.
+                synopsisDiv.textContent = 'Synopsis: Content not available yet.';
+                li.appendChild(synopsisDiv);
+
+                // Buttons
+                const toggleSynopsisButton = document.createElement('button');
+                toggleSynopsisButton.className = 'toggle-synopsis';
+                toggleSynopsisButton.textContent = 'Show Synopsis';
+                toggleSynopsisButton.onclick = () => {
+                    if (synopsisDiv.style.display === 'none' || synopsisDiv.style.display === '') {
+                        synopsisDiv.style.display = 'block';
+                        toggleSynopsisButton.textContent = 'Hide Synopsis';
+                    } else {
+                        synopsisDiv.style.display = 'none';
+                        toggleSynopsisButton.textContent = 'Show Synopsis';
+                    }
+                };
+                li.appendChild(toggleSynopsisButton);
+
+                const readMoreButton = document.createElement('button');
+                readMoreButton.className = 'read-more-button';
+                readMoreButton.textContent = 'Read More';
+                readMoreButton.onclick = () => window.open(story.url, '_blank');
+                li.appendChild(readMoreButton);
 
                 ul.appendChild(li);
             });
