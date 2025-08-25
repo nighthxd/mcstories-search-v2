@@ -1,9 +1,7 @@
 // netlify/functions/scrape.js
-const axios = require('axios');
-const cheerio = require('cheerio');
 const { searchall } = require('../../categories');
 const { scrapeWebsite } = require('./utils/sharedScraperUtils');
-const { Pool = require('pg');
+const { Pool } = require('pg');
 
 let pool;
 

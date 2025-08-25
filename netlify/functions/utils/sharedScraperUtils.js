@@ -1,22 +1,34 @@
 // netlify/functions/utils/sharedScraperUtils.js
-const axios = require('axios');
+const chromium = require('@sparticuz/chromium');
+const puppeteer = require('puppeteer-core');
 const cheerio = require('cheerio');
-const excludedLinks = require('../../../excludedLinks'); // Ensure this path is correct
+const excludedLinks = require('../../../excludedLinks');
 
 async function scrapeWebsite(url, searchQuery = '') {
-    console.log(`Starting scrapeWebsite for URL: ${url} with query: ${searchQuery}`);
+    console.log(`Starting Puppeteer scrape for URL: ${url}`);
+    let browser = null;
 
     try {
-        const { data } = await axios.get(url, { timeout: 10000 });
+        browser = await puppeteer.launch({
+            args: chromium.args,
+            defaultViewport: chromium.defaultViewport,
+            executablePath: await chromium.executablePath(),
+            headless: chromium.headless,
+        });
+
+        const page = await browser.newPage();
+        await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36');
+
+        // Navigate to the URL and wait for the network to be idle, allows JS challenges to complete
+        await page.goto(url, { waitUntil: 'networkidle0' });
+
+        // Get the final HTML content
+        const data = await page.content();
         const $ = cheerio.load(data);
 
         let stories = [];
 
-        // --- CHANGE THIS LINE to be specific to story links ---
-        // FROM: $('a[href^=\"../Stories/\"]').each((i, element) => {
-        // TO:
         $('a[href$="/index.html"]').each((i, element) => {
-        // --- END CHANGE ---
             const title = $(element).text().trim();
             const link = $(element).attr('href');
             const fullLink = new URL(link, url).href;
@@ -34,8 +46,6 @@ async function scrapeWebsite(url, searchQuery = '') {
                     categories.push(...extractedCats);
                 }
                 
-                // We're no longer scraping synopsis here to prevent timeouts
-                // It will be fetched on demand by a new function
                 stories.push({ 
                     title, 
                     link: fullLink, 
@@ -45,11 +55,15 @@ async function scrapeWebsite(url, searchQuery = '') {
             }
         });
 
-        console.log(`Finished scrapeWebsite for URL: ${url}. Found ${stories.length} stories.`);
-        return stories; // stories now includes an empty synopsis placeholder
+        console.log(`Finished Puppeteer scrape for URL: ${url}. Found ${stories.length} stories.`);
+        return stories;
     } catch (error) {
-        console.error(`Error scraping ${url}:`, error);
+        console.error(`Error scraping ${url} with Puppeteer:`, error);
         return [];
+    } finally {
+        if (browser !== null) {
+            await browser.close();
+        }
     }
 }
 
