@@ -3,8 +3,9 @@
   functions = "netlify/functions"
 
 [functions]
-  node_bundler = "esbuild"
-  # This line tells Netlify to include the browser files in the deployment.
+  # Switch the bundler from esbuild to zisi
+  node_bundler = "zisi"
+  # Keep this line to ensure the browser files are included
   included_files = ["node_modules/@sparticuz/chromium/**"]
 
 # These settings apply to all functions
