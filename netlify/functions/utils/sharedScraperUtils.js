@@ -1,5 +1,4 @@
 // netlify/functions/utils/sharedScraperUtils.js
-require('@sparticuz/brotli');
 const puppeteer = require('puppeteer-core');
 const cheerio = require('cheerio');
 const excludedLinks = require('../../../excludedLinks');

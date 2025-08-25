@@ -1,5 +1,4 @@
 // netlify/functions/scrape-categories.js
-require('@sparticuz/brotli');
 const chromium = require('@sparticuz/chromium');
 const puppeteer = require('puppeteer-core');
 const { tags, searchall } = require('../../categories');
