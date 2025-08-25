@@ -6,6 +6,7 @@ const { Pool } = require('pg');
 
 let pool;
 
+// Establishes a reusable database connection pool
 async function ensureDbInitialized() {
     if (!pool) {
         if (!process.env.NETLIFY_DATABASE_URL) {
@@ -41,6 +42,7 @@ exports.handler = async (event, context) => {
         const dbPool = await ensureDbInitialized();
         client = await dbPool.connect();
 
+        // 1. Check for a cached synopsis in the database first
         const dbResponse = await client.query(
             `SELECT synopsis FROM stories WHERE url = $1 AND synopsis IS NOT NULL AND synopsis != ''`,
             [storyUrl]
@@ -51,19 +53,21 @@ exports.handler = async (event, context) => {
             return { statusCode: 200, body: JSON.stringify({ synopsis: dbResponse.rows[0].synopsis }) };
         }
 
+        // 2. If not cached, scrape the page using Puppeteer
         console.log(`Synopsis not in cache. Scraping with Puppeteer for: ${storyUrl}`);
-
         browser = await puppeteer.launch({
             args: chromium.args,
             defaultViewport: chromium.defaultViewport,
             executablePath: await chromium.executablePath(),
             headless: chromium.headless,
         });
+
         const page = await browser.newPage();
         await page.goto(storyUrl, { waitUntil: 'networkidle0' });
         const data = await page.content();
         const $ = cheerio.load(data);
 
+        // 3. Extract the synopsis text from the page
         let scrapedSynopsis = 'Synopsis not available.';
         const storyContentDiv = $('section.synopsis, div#storytext, div.panel-body, div#content, div.story-content, article.story-article, .main-content-area').first();
 
@@ -75,7 +79,8 @@ exports.handler = async (event, context) => {
         } else {
             scrapedSynopsis = 'Could not locate the main story content area.';
         }
-
+        
+        // 4. Save the newly scraped synopsis to the database
         await client.query(
             `UPDATE stories SET synopsis = $1 WHERE url = $2`,
             [scrapedSynopsis, storyUrl]
@@ -88,6 +93,7 @@ exports.handler = async (event, context) => {
         console.error(`Error in get-synopsis handler for ${storyUrl}:`, error);
         return { statusCode: 500, body: JSON.stringify({ error: `Failed to fetch synopsis.` }) };
     } finally {
+        // Ensure both the database client and the browser are closed
         if (client) client.release();
         if (browser) await browser.close();
     }

@@ -12,9 +12,10 @@ async function scrapeWebsite(url, searchQuery = '') {
         browser = await puppeteer.launch({
             args: chromium.args,
             defaultViewport: chromium.defaultViewport,
+            // This is the new, robust executablePath line.
             executablePath: await chromium.executablePath(),
             headless: chromium.headless,
-        });
+    });
 
         const page = await browser.newPage();
         await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36');

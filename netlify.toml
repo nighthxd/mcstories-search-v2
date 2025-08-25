@@ -7,7 +7,7 @@
   # This line tells Netlify to include the browser files in the deployment.
   included_files = ["node_modules/@sparticuz/chromium/**"]
 
-# Apply these settings to ALL functions
+# These settings apply to all functions
 [functions."*"]
   timeout = 30
   memory = 1024
