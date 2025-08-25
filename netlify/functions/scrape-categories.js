@@ -110,11 +110,10 @@ exports.handler = async (event, context) => {
             urlsToScrape.push(searchall);
         }
 
-        let allStories = [];
-        for (const url of urlsToScrape) {
-            const scraped = await scrapeWebsite(url, searchQuery);
-            allStories = allStories.concat(scraped);
-        }
+        console.log(`Scraping ${urlsToScrape.length} URLs in parallel.`);
+        const scrapePromises = urlsToScrape.map(url => scrapeWebsite(url, searchQuery));
+        const results = await Promise.all(scrapePromises);
+        const allStories = results.flat(); // Combine all results from the parallel scrapes
 
         const uniqueStories = [];
         const seenTitles = new Set();
