@@ -1,15 +1,15 @@
+# Global build settings
 [build]
   publish = "."
   functions = "netlify/functions"
 
-# This section schedules ONE specific function
-[[functions]]
-  function = "scrape-category-by-schedule"
-  schedule = "*/5 * * * *"
-
-# This section applies global settings to ALL functions
-[functions."*"]
+# Global settings for the function bundling process
+[functions]
   node_bundler = "zisi"
   included_files = ["node_modules/@sparticuz/chromium/**"]
+
+# Specific settings for your long-running scheduled function
+[functions."scrape-category-by-schedule"]
+  schedule = "*/5 * * * *"
   timeout = 240 # 4 minutes
   memory = 1024
