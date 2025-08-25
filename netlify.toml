@@ -1,0 +1,6 @@
+[build]
+  publish = "public" # Specifies the directory where your static files are located
+  functions = "netlify/functions" # Specifies the directory where your Netlify Functions are located
+
+[functions]
+  node_bundler = "esbuild" # Modern and faster bundler for functions
