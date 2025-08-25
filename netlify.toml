@@ -3,12 +3,14 @@
   functions = "netlify/functions"
 
 [functions]
-  # Switch the bundler from esbuild to zisi
   node_bundler = "zisi"
-  # Keep this line to ensure the browser files are included
   included_files = ["node_modules/@sparticuz/chromium/**"]
 
-# These settings apply to all functions
+# This schedule now runs the new function every 5 minutes
+[[functions.schedule]]
+  cron = "*/5 * * * *"
+  function = "scrape-category-by-schedule"
+
 [functions."*"]
-  timeout = 30
+  timeout = 240 # 4 minutes, well within the 5-minute window
   memory = 1024
