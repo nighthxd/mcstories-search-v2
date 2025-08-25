@@ -2,17 +2,14 @@
   publish = "."
   functions = "netlify/functions"
 
-# This section is for global function settings
-[functions]
-  node_bundler = "zisi"
-  included_files = ["node_modules/@sparticuz/chromium/**"]
-
 # This section schedules ONE specific function
 [[functions]]
   function = "scrape-category-by-schedule"
   schedule = "*/5 * * * *"
 
-# This section applies default settings to ALL functions
+# This section applies global settings to ALL functions
 [functions."*"]
+  node_bundler = "zisi"
+  included_files = ["node_modules/@sparticuz/chromium/**"]
   timeout = 240 # 4 minutes
   memory = 1024
