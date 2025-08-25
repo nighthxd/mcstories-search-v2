@@ -2,15 +2,17 @@
   publish = "."
   functions = "netlify/functions"
 
+# This section is for global function settings
 [functions]
   node_bundler = "zisi"
   included_files = ["node_modules/@sparticuz/chromium/**"]
 
-# This schedule now runs the new function every 5 minutes
-[[functions.schedule]]
-  cron = "*/5 * * * *"
+# This section schedules ONE specific function
+[[functions]]
   function = "scrape-category-by-schedule"
+  schedule = "*/5 * * * *"
 
+# This section applies default settings to ALL functions
 [functions."*"]
-  timeout = 240 # 4 minutes, well within the 5-minute window
+  timeout = 240 # 4 minutes
   memory = 1024
