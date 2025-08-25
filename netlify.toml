@@ -4,6 +4,8 @@
 
 [functions]
   node_bundler = "esbuild"
+  # This line tells Netlify to include the browser files in the deployment.
+  included_files = ["node_modules/@sparticuz/chromium/**"]
 
 # Apply these settings to ALL functions
 [functions."*"]
