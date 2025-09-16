@@ -2,34 +2,14 @@
 const chromium = require('@sparticuz/chromium');
 const puppeteer = require('puppeteer-core');
 const cheerio = require('cheerio');
-const { tags } = require('../../categories'); // We only need the tags object
-const { Pool } = require('pg');
-
-let pool;
-
-async function ensureDbInitialized() {
-    if (!pool) {
-        pool = new Pool({ connectionString: process.env.NETLIFY_DATABASE_URL, ssl: { rejectUnauthorized: false } });
-        const client = await pool.connect();
-        try {
-            // Create the stories table if it doesn't exist
-            await client.query(`CREATE TABLE IF NOT EXISTS stories (id SERIAL PRIMARY KEY, title TEXT NOT NULL, url TEXT UNIQUE NOT NULL, categories TEXT[], synopsis TEXT, last_scraped_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP);`);
-            // Create and initialize the state tracking table
-            await client.query(`CREATE TABLE IF NOT EXISTS scrape_state (id INT PRIMARY KEY, last_scraped_category_index INT);`);
-            await client.query(`INSERT INTO scrape_state (id, last_scraped_category_index) VALUES (1, -1) ON CONFLICT (id) DO NOTHING;`);
-        } finally {
-            client.release();
-        }
-    }
-    return pool;
-}
+const { tags } = require('../../categories');
 
 // Utility to scrape a single story's synopsis
 async function scrapeSynopsisPage(browser, storyUrl) {
     let page = null;
     try {
         page = await browser.newPage();
-        await page.goto(storyUrl, { waitUntil: 'networkidle0', timeout: 20000 }); // 20 second timeout per page
+        await page.goto(storyUrl, { waitUntil: 'networkidle0', timeout: 20000 });
         const data = await page.content();
         const $ = cheerio.load(data);
         const storyContentDiv = $('section.synopsis, div#storytext').first();
@@ -49,19 +29,13 @@ async function scrapeSynopsisPage(browser, storyUrl) {
 }
 
 exports.handler = async () => {
-    let client;
     let browser = null;
     try {
-        const dbPool = await ensureDbInitialized();
-        client = await dbPool.connect();
-
-        // 1. Get the last scraped category index from the database
-        const stateResult = await client.query('SELECT last_scraped_category_index FROM scrape_state WHERE id = 1');
-        const lastIndex = stateResult.rows[0].last_scraped_category_index;
-        
+        // Note: This function no longer tracks state. It just scrapes a random category.
+        // A stateful approach would require another API call.
         const categoryKeys = Object.keys(tags);
-        const nextIndex = (lastIndex + 1) % categoryKeys.length;
-        const categoryToScrape = categoryKeys[nextIndex];
+        const randomIndex = Math.floor(Math.random() * categoryKeys.length);
+        const categoryToScrape = categoryKeys[randomIndex];
         const urlToScrape = tags[categoryToScrape];
 
         console.log(`Starting scheduled scrape for category: [${categoryToScrape.toUpperCase()}]`);
@@ -73,7 +47,6 @@ exports.handler = async () => {
             headless: chromium.headless,
         });
 
-        // 2. Scrape the category index page
         const mainPage = await browser.newPage();
         await mainPage.goto(urlToScrape, { waitUntil: 'networkidle0' });
         const mainHtml = await mainPage.content();
@@ -93,9 +66,8 @@ exports.handler = async () => {
                 }
             }
         });
-        console.log(`Found ${storiesOnPage.length} stories in category [${categoryToScrape.toUpperCase()}]. Fetching synopses...`);
-
-        // 3. Scrape all synopses for the found stories
+        
+        console.log(`Found ${storiesOnPage.length} stories. Fetching synopses...`);
         const synopsisPromises = storiesOnPage.map(story =>
             scrapeSynopsisPage(browser, story.link).then(synopsis => {
                 story.synopsis = synopsis;
@@ -104,29 +76,30 @@ exports.handler = async () => {
         );
         const storiesWithData = await Promise.all(synopsisPromises);
 
-        // 4. Save results to the database
-        console.log(`Saving ${storiesWithData.length} stories to the database...`);
-        await client.query('BEGIN');
-        for (const story of storiesWithData) {
-            await client.query(
-                `INSERT INTO stories (title, url, categories, synopsis) VALUES ($1, $2, $3, $4)
-                 ON CONFLICT (url) DO UPDATE SET title = EXCLUDED.title, categories = EXCLUDED.categories, synopsis = EXCLUDED.synopsis, last_scraped_at = CURRENT_TIMESTAMP`,
-                [story.title, story.link, story.categories, story.synopsis]
-            );
+        // Send the scraped data to the Cloudflare Worker
+        console.log(`Sending ${storiesWithData.length} stories to Cloudflare Worker...`);
+        const response = await fetch(process.env.CLOUDFLARE_WORKER_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CUSTOM-AUTH-KEY': process.env.NETLIFY_TO_CLOUDFLARE_SECRET,
+            },
+            body: JSON.stringify(storiesWithData),
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Cloudflare Worker failed: ${response.status} ${errorText}`);
         }
-        await client.query('COMMIT');
 
-        // 5. Update the state for the next run
-        await client.query('UPDATE scrape_state SET last_scraped_category_index = $1 WHERE id = 1', [nextIndex]);
+        const result = await response.json();
+        console.log('Successfully sent data to Cloudflare Worker:', result);
+        return { statusCode: 200, body: 'Scrape and send successful.' };
 
-        console.log(`Successfully finished scrape for category: [${categoryToScrape.toUpperCase()}]`);
-        return { statusCode: 200, body: 'Scrape successful.' };
     } catch (error) {
-        if (client) await client.query('ROLLBACK');
         console.error("Error in scheduled scrape handler:", error);
-        return { statusCode: 500 };
+        return { statusCode: 500, body: error.message };
     } finally {
         if (browser) await browser.close();
-        if (client) client.release();
     }
 };

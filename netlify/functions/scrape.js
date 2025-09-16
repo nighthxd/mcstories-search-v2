@@ -1,54 +1,36 @@
 // netlify/functions/scrape.js
-const { Pool } = require('pg');
-
-let pool;
-
-async function ensureDbInitialized() {
-    if (!pool) {
-        if (!process.env.NETLIFY_DATABASE_URL) {
-            throw new Error('NETLIFY_DATABASE_URL environment variable is not set.');
-        }
-        pool = new Pool({
-            connectionString: process.env.NETLIFY_DATABASE_URL,
-            ssl: {
-                rejectUnauthorized: false
-            }
-        });
-    }
-    return pool;
-}
 
 exports.handler = async (event, context) => {
-    // This function now only reads from the database. It does not scrape.
-    const { query } = JSON.parse(event.body || '{}');
-    let client;
-
     try {
-        const pool = await ensureDbInitialized();
-        client = await pool.connect();
+        const { query } = JSON.parse(event.body || '{}');
+        const params = new URLSearchParams({ query: query || '' });
+        const apiUrl = `${process.env.CLOUDFLARE_WORKER_URL}/search?${params.toString()}`;
 
-        console.log(`Searching database for simple query: "${query}"`);
+        console.log(`Forwarding simple search to: ${apiUrl}`);
 
-        const searchResult = await client.query(
-            `SELECT title, url, categories, synopsis FROM stories WHERE ($1 = '' OR title ILIKE '%' || $1 || '%') ORDER BY title`,
-            [query || '']
-        );
+        const response = await fetch(apiUrl, {
+            headers: {
+                'X-CUSTOM-AUTH-KEY': process.env.NETLIFY_TO_CLOUDFLARE_SECRET,
+            }
+        });
 
-        console.log(`Found ${searchResult.rows.length} stories in the database.`);
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Cloudflare Worker failed: ${response.status} ${errorText}`);
+        }
+
+        const stories = await response.json();
 
         return {
             statusCode: 200,
-            body: JSON.stringify(searchResult.rows),
+            body: JSON.stringify(stories),
         };
+
     } catch (error) {
-        console.error("Error in scrape function handler:", error);
+        console.error("Error in scrape handler:", error);
         return {
             statusCode: 500,
-            body: JSON.stringify({ error: 'Error occurred while searching the database.' }),
+            body: JSON.stringify({ error: error.message }),
         };
-    } finally {
-        if (client) {
-            client.release();
-        }
     }
 };

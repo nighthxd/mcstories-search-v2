@@ -1,98 +1,36 @@
 // netlify/functions/scrape-categories.js
-const { Pool } = require('pg');
-
-let pool;
-
-async function ensureDbInitialized() {
-    if (!pool) {
-        if (!process.env.NETLIFY_DATABASE_URL) {
-            throw new Error('NETLIFY_DATABASE_URL environment variable is not set.');
-        }
-        pool = new Pool({
-            connectionString: process.env.NETLIFY_DATABASE_URL,
-            ssl: {
-                rejectUnauthorized: false
-            }
-        });
-        try {
-            const client = await pool.connect();
-            console.log('Database pool connected successfully for search.');
-            client.release();
-        } catch (err) {
-            console.error('Failed to connect to DB for search:', err);
-            pool = null;
-            throw new Error('Database initialization for search failed.');
-        }
-    }
-    return pool;
-}
 
 exports.handler = async (event, context) => {
-    let includedTags = [];
-    let excludedTags = [];
-    let searchQuery = '';
-
-    if (event.queryStringParameters) {
-        if (event.queryStringParameters.categories) {
-            includedTags = event.queryStringParameters.categories.split(',');
-        }
-        if (event.queryStringParameters.excludedCategories) {
-            excludedTags = event.queryStringParameters.excludedCategories.split(',');
-        }
-        if (event.queryStringParameters.query) {
-            searchQuery = event.queryStringParameters.query.trim();
-        }
-    }
-
-    let client;
-
+    // This function now forwards the request to your Cloudflare Worker API
     try {
-        const pool = await ensureDbInitialized();
-        client = await pool.connect();
-        
-        // This function now ONLY queries the database. No scraping.
-        console.log(`Searching database for: query='${searchQuery}', include='${includedTags}', exclude='${excludedTags}'`);
+        const params = new URLSearchParams(event.queryStringParameters);
+        const apiUrl = `${process.env.CLOUDFLARE_WORKER_URL}/search?${params.toString()}`;
 
-        // Build the SQL query dynamically
-        const queryParams = [];
-        let whereClauses = [];
+        console.log(`Forwarding category search to: ${apiUrl}`);
 
-        if (searchQuery) {
-            queryParams.push(`%${searchQuery}%`);
-            whereClauses.push(`title ILIKE $${queryParams.length}`);
+        const response = await fetch(apiUrl, {
+            headers: {
+                'X-CUSTOM-AUTH-KEY': process.env.NETLIFY_TO_CLOUDFLARE_SECRET,
+            }
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Cloudflare Worker failed: ${response.status} ${errorText}`);
         }
 
-        if (includedTags.length > 0) {
-            queryParams.push(includedTags);
-            whereClauses.push(`categories @> $${queryParams.length}`);
-        }
-
-        if (excludedTags.length > 0) {
-            queryParams.push(excludedTags);
-            whereClauses.push(`NOT (categories && $${queryParams.length})`);
-        }
-
-        const whereString = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
-        const sqlQuery = `SELECT title, url, categories, synopsis FROM stories ${whereString} ORDER BY title;`;
-
-        const searchResult = await client.query(sqlQuery, queryParams);
-
-        console.log(`Found ${searchResult.rows.length} stories in the database.`);
+        const stories = await response.json();
 
         return {
             statusCode: 200,
-            body: JSON.stringify(searchResult.rows),
+            body: JSON.stringify(stories),
         };
 
     } catch (error) {
-        console.error("Error in database search handler:", error);
+        console.error("Error in scrape-categories handler:", error);
         return {
             statusCode: 500,
-            body: JSON.stringify({ error: 'Error occurred while searching the database.' }),
+            body: JSON.stringify({ error: error.message }),
         };
-    } finally {
-        if (client) {
-            client.release();
-        }
     }
 };
