@@ -1,15 +1,9 @@
-# Global build settings
+# Final, cleaned netlify.toml
+
 [build]
   publish = "."
   functions = "netlify/functions"
 
-# Global settings for the function bundling process
+# Global settings for your lightweight API proxy functions
 [functions]
-  node_bundler = "zisi"
-  included_files = ["node_modules/@sparticuz/chromium/**"]
-
-# Specific settings for your long-running scheduled function
-[functions."scrape-category-by-schedule"]
-  schedule = "*/5 * * * *"
-  timeout = 240 # 4 minutes
-  memory = 1024
+  node_bundler = "esbuild" # Switched back to the faster default bundler

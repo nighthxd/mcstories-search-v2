@@ -1,11 +1,6 @@
 {
-  "name": "mcstories-search",
+  "name": "mcstories-search-frontend",
   "version": "1.0.0",
-  "description": "MCStories Search",
-  "dependencies": {
-    "cheerio": "^1.0.0-rc.10",
-    "pg": "^8.0.0",
-    "puppeteer-core": "^22.12.1",
-    "@sparticuz/chromium": "^126.0.0"
-  }
+  "private": true,
+  "description": "Frontend and API gateway for the MCStories Search project"
 }
