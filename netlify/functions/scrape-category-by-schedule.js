@@ -2,7 +2,6 @@
 const cheerio = require('cheerio');
 const { tags } = require('../../categories');
 
-// Helper function to call the Cloudflare Browser Rendering API
 async function scrapeUrlWithCloudflare(url) {
     const { CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN } = process.env;
     const endpoint = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/browser-rendering/v1/scrape`;
@@ -26,8 +25,26 @@ async function scrapeUrlWithCloudflare(url) {
 }
 
 exports.handler = async () => {
+    // --- NEW DEBUGGING LOGS ---
+    console.log("--- Verifying Environment Variables ---");
+    const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
+    const apiToken = process.env.CLOUDFLARE_API_TOKEN;
+
+    if (!accountId) {
+        console.error("CRITICAL: CLOUDFLARE_ACCOUNT_ID environment variable is NOT SET.");
+    } else {
+        console.log(`Cloudflare Account ID Loaded: ${accountId}`);
+    }
+
+    if (!apiToken) {
+        console.error("CRITICAL: CLOUDFLARE_API_TOKEN environment variable is NOT SET.");
+    } else {
+        console.log(`Cloudflare API Token Loaded: Length=${apiToken.length}, Preview=${apiToken.substring(0, 4)}...${apiToken.substring(apiToken.length - 4)}`);
+    }
+    console.log("------------------------------------");
+    // --- END DEBUGGING LOGS ---
+
     try {
-        // For simplicity, we'll just scrape a random category each time.
         const categoryKeys = Object.keys(tags);
         const randomIndex = Math.floor(Math.random() * categoryKeys.length);
         const categoryToScrape = categoryKeys[randomIndex];
@@ -35,7 +52,6 @@ exports.handler = async () => {
 
         console.log(`Starting scheduled scrape for category: [${categoryToScrape.toUpperCase()}]`);
 
-        // 1. Scrape the main category page to get story links
         const mainHtml = await scrapeUrlWithCloudflare(urlToScrape);
         const $ = cheerio.load(mainHtml);
         const storiesOnPage = [];
@@ -61,11 +77,8 @@ exports.handler = async () => {
             return { statusCode: 200, body: 'No stories found.' };
         }
 
-        // 2. Scrape each story's synopsis (optional, can be time-consuming)
-        // For now, we'll skip this to keep the function fast. The data will be saved without synopses.
         const storiesWithData = storiesOnPage.map(story => ({ ...story, synopsis: '' }));
 
-        // 3. Send the scraped data to our Cloudflare Worker to be saved in D1
         console.log(`Sending ${storiesWithData.length} stories to Cloudflare Worker...`);
         const response = await fetch(`${process.env.CLOUDFLARE_WORKER_URL}/save-stories`, {
             method: 'POST',
