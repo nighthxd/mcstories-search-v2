@@ -1,6 +1,8 @@
 {
-  "name": "mcstories-search-frontend",
+  "name": "mcstories-netlify-scraper",
   "version": "1.0.0",
   "private": true,
-  "description": "Frontend and API gateway for the MCStories Search project"
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.12"
+  }
 }

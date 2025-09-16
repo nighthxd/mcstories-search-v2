@@ -1,4 +1,4 @@
-# Final, correct netlify.toml
+# Final netlify.toml
 
 [build]
   publish = "public"
@@ -6,3 +6,7 @@
 
 [functions]
   node_bundler = "esbuild"
+
+# This section schedules your scraper to run every 5 minutes
+[functions."scrape-category-by-schedule"]
+  schedule = "*/5 * * * *"
