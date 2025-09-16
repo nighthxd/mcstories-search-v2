@@ -78,7 +78,7 @@ exports.handler = async () => {
 
         // Send the scraped data to the Cloudflare Worker
         console.log(`Sending ${storiesWithData.length} stories to Cloudflare Worker...`);
-        const response = await fetch(process.env.CLOUDFLARE_WORKER_URL, {
+        const response = await fetch(`${process.env.CLOUDFLARE_WORKER_URL}/save-stories`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
