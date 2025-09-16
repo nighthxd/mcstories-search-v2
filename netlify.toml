@@ -1,9 +1,8 @@
-# Final, cleaned netlify.toml
+# Final, correct netlify.toml
 
 [build]
-  publish = "."
+  publish = "public"
   functions = "netlify/functions"
 
-# Global settings for your lightweight API proxy functions
 [functions]
-  node_bundler = "esbuild" # Switched back to the faster default bundler
+  node_bundler = "esbuild"
