@@ -5,6 +5,25 @@ const { tags } = require('../../categories');
 async function scrapeUrlWithCloudflare(url) {
     const { CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN } = process.env;
     const endpoint = `https://api.cloudflare.com/client/v4/accounts/${process.env.CLOUDFLARE_ACCOUNT_ID}/browser-rendering/v1/scrape`;
+    // --- NEW DEBUGGING LOGS ---
+    console.log("--- Verifying Environment Variables ---");
+    const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
+    const apiToken = process.env.CLOUDFLARE_API_TOKEN;
+
+    if (!accountId) {
+        console.error("2 CRITICAL: CLOUDFLARE_ACCOUNT_ID environment variable is NOT SET.");
+    } else {
+        console.log(`2 Cloudflare Account ID Loaded: ${accountId}`);
+        console.log(`2 Cloudflare URL: ${endpoint}`);
+    }
+
+    if (!apiToken) {
+        console.error("2 CRITICAL: CLOUDFLARE_API_TOKEN environment variable is NOT SET.");
+    } else {
+        console.log(`2 Cloudflare API Token Loaded: Length=${apiToken.length}, Preview=${apiToken.substring(0, 4)}...${apiToken.substring(apiToken.length - 4)}`);
+    }
+    console.log("------------------------------------");
+    // --- END DEBUGGING LOGS ---
 
     const response = await fetch(endpoint, {
         method: 'POST',
