@@ -2,7 +2,7 @@
 const cheerio = require('cheerio');
 const { tags } = require('../../categories');
 
-async function scrapeUrlWithCloudflare(url) {
+async function scrapeUrlWithCloudflare(urlToScrape) {
     const { CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN } = process.env;
     const endpoint = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/browser-rendering/scrape`;
     const elementsSelector = [
@@ -10,10 +10,10 @@ async function scrapeUrlWithCloudflare(url) {
     ];
 
     const urlData = {
-      urlLink: url,
+      url: urlToScrape,
       elements: JSON.stringify(elementsSelector),
     };
-    
+
     const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
@@ -25,7 +25,7 @@ async function scrapeUrlWithCloudflare(url) {
 
     if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`Failed to scrape ${url}. Status: ${response.status}, Details: ${errorText}`);
+        throw new Error(`Failed to scrape ${urlToScrape}. Status: ${response.status}, Details: ${errorText}`);
     }
 
     const { result } = await response.json();
