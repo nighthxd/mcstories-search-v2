@@ -5,14 +5,14 @@ const { tags } = require('../../categories');
 async function scrapeUrlWithCloudflare(urlToScrape) {
     const { CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN } = process.env;
     const endpoint = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/browser-rendering/scrape`;
-
+    const elements = {}
     const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${process.env.CLOUDFLARE_API_TOKEN}`,
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ "url:": urlToScrape, "elements:": [{ "selector:": "tr" }] }),
+        body: JSON.stringify({ "url": urlToScrape, "elements": [{ "selector": "tr" }] }),
     });
 
     if (!response.ok) {
