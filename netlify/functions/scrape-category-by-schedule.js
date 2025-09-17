@@ -30,17 +30,23 @@ async function scrapeUrlWithCloudflare(urlToScrape) {
     }
 
     const json = await response.json();
-    const { result } = json;
 
-    if (!result || !result.content) {
+    if (!json.result || !Array.isArray(json.result) || json.result.length === 0) {
         console.error("Cloudflare scrape raw response:", JSON.stringify(json, null, 2));
-        throw new Error(`Cloudflare scrape returned no content for ${urlToScrape}`);
+        throw new Error(`Cloudflare scrape returned no usable data for ${urlToScrape}`);
     }
 
-    // Debug: log first 200 characters of returned HTML
-    console.log("Cloudflare scrape preview:", result.content.slice(0, 200));
+    // Flatten all html snippets into one string
+    const snippets = json.result.flatMap(r => r.results?.map(item => item.html) || []);
+    const combinedHtml = snippets.join("\n");
 
-    return result.content;
+    if (!combinedHtml) {
+        console.error("Cloudflare scrape raw response:", JSON.stringify(json, null, 2));
+        throw new Error(`Cloudflare scrape returned empty snippets for ${urlToScrape}`);
+    }
+
+    console.log("Cloudflare scrape preview:", combinedHtml.slice(0, 200));
+    return combinedHtml;
 }
 
 exports.handler = async () => {
