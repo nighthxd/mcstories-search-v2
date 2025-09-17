@@ -11,7 +11,7 @@ async function scrapeUrlWithCloudflare(urlToScrape) {
 
     const urlData = {
       url: urlToScrape,
-      elements: JSON.stringify(elementsSelector),
+      elements: elementsSelector,
     };
 
     const response = await fetch(endpoint, {
