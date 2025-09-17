@@ -8,6 +8,7 @@ async function scrapeUrlWithCloudflare(url) {
     const elements = [
       { selector: "tr" }
     ];
+    const elementsString = JSON.stringify(elements);
 
     const response = await fetch(endpoint, {
         method: 'POST',
@@ -15,7 +16,7 @@ async function scrapeUrlWithCloudflare(url) {
             'Authorization': `Bearer ${process.env.CLOUDFLARE_API_TOKEN}`,
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ url, elements }),
+        body: JSON.stringify({ url, elements: elements }),
     });
 
     if (!response.ok) {
