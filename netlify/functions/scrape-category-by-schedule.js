@@ -5,7 +5,7 @@ const { tags } = require('../../categories');
 async function scrapeUrlWithCloudflare(url) {
     const { CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN } = process.env;
     const endpoint = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/browser-rendering/scrape`;
-    const elements = [
+    const elementsSelector = [
       { selector: "tr" }
     ];
     const elementsString = JSON.stringify(elements);
@@ -16,7 +16,7 @@ async function scrapeUrlWithCloudflare(url) {
             'Authorization': `Bearer ${process.env.CLOUDFLARE_API_TOKEN}`,
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ url, elements }),
+        body: JSON.stringify({ url, elements: elementsSelector}),
     });
 
     if (!response.ok) {
