@@ -29,7 +29,10 @@ async function scrapeUrlWithCloudflare(urlToScrape) {
     }
 
     const { result } = await response.json();
-    return result.html;
+    if (!result || !result.content) {
+        throw new Error(`Cloudflare scrape returned no content for ${urlToScrape}`);
+    }
+    return result.content;
 }
 
 exports.handler = async () => {
