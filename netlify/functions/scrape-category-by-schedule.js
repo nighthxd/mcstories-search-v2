@@ -2,17 +2,20 @@
 const cheerio = require('cheerio');
 const { tags } = require('../../categories');
 
-async function scrapeUrlWithCloudflare(urlToScrape) {
+async function scrapeUrlWithCloudflare(url) {
     const { CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN } = process.env;
     const endpoint = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/browser-rendering/scrape`;
-    const elements = {}
+    const elements = [
+      { selector: "tr" }
+    ];
+
     const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${process.env.CLOUDFLARE_API_TOKEN}`,
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ "url": urlToScrape, "elements": [{ "selector": "tr" }] }),
+        body: JSON.stringify({ url, elements }),
     });
 
     if (!response.ok) {
