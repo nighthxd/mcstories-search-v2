@@ -16,7 +16,7 @@ async function scrapeUrlWithCloudflare(url) {
             'Authorization': `Bearer ${process.env.CLOUDFLARE_API_TOKEN}`,
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ url, elements: elementsString }),
+        body: JSON.stringify({ url, elements }),
     });
 
     if (!response.ok) {
