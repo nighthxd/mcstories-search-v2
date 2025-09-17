@@ -5,6 +5,7 @@ const { tags } = require('../../categories');
 async function scrapeUrlWithCloudflare(urlToScrape) {
     const { CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN } = process.env;
     const endpoint = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/browser-rendering/scrape`;
+
     const elementsSelector = [
       { selector: "tr" }
     ];
@@ -17,7 +18,7 @@ async function scrapeUrlWithCloudflare(urlToScrape) {
     const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
-            'Authorization': `Bearer ${process.env.CLOUDFLARE_API_TOKEN}`,
+            'Authorization': `Bearer ${CLOUDFLARE_API_TOKEN}`,
             'Content-Type': 'application/json',
         },
         body: JSON.stringify(urlData),
@@ -28,10 +29,17 @@ async function scrapeUrlWithCloudflare(urlToScrape) {
         throw new Error(`Failed to scrape ${urlToScrape}. Status: ${response.status}, Details: ${errorText}`);
     }
 
-    const { result } = await response.json();
+    const json = await response.json();
+    const { result } = json;
+
     if (!result || !result.content) {
+        console.error("Cloudflare scrape raw response:", JSON.stringify(json, null, 2));
         throw new Error(`Cloudflare scrape returned no content for ${urlToScrape}`);
     }
+
+    // Debug: log first 200 characters of returned HTML
+    console.log("Cloudflare scrape preview:", result.content.slice(0, 200));
+
     return result.content;
 }
 
