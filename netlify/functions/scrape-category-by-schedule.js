@@ -7,12 +7,12 @@ async function scrapeUrlWithCloudflare(urlToScrape) {
     const endpoint = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/browser-rendering/scrape`;
 
     const elementsSelector = [
-      { selector: "tr" }
+        { selector: "tr" } // scrape each table row
     ];
 
     const urlData = {
-      url: urlToScrape,
-      elements: elementsSelector,
+        url: urlToScrape,
+        elements: elementsSelector,
     };
 
     const response = await fetch(endpoint, {
@@ -36,17 +36,7 @@ async function scrapeUrlWithCloudflare(urlToScrape) {
         throw new Error(`Cloudflare scrape returned no usable data for ${urlToScrape}`);
     }
 
-    // Flatten all html snippets into one string
-    const snippets = json.result.flatMap(r => r.results?.map(item => item.html) || []);
-    const combinedHtml = snippets.join("\n");
-
-    if (!combinedHtml) {
-        console.error("Cloudflare scrape raw response:", JSON.stringify(json, null, 2));
-        throw new Error(`Cloudflare scrape returned empty snippets for ${urlToScrape}`);
-    }
-
-    console.log("Cloudflare scrape preview:", combinedHtml.slice(0, 200));
-    return combinedHtml;
+    return json.result.flatMap(r => r.results || []);
 }
 
 exports.handler = async () => {
@@ -58,23 +48,35 @@ exports.handler = async () => {
 
         console.log(`Starting scheduled scrape for category: [${categoryToScrape.toUpperCase()}]`);
 
-        const mainHtml = await scrapeUrlWithCloudflare(urlToScrape);
-        const $ = cheerio.load(mainHtml);
+        // Get structured results from Cloudflare
+        const results = await scrapeUrlWithCloudflare(urlToScrape);
+
         const storiesOnPage = [];
-        $('a[href$="/index.html"]').each((i, element) => {
+        results.forEach(item => {
             try {
-                const title = $(element).text().trim();
-                const link = $(element).attr('href');
-                if (title && link) {
-                    const fullLink = new URL(link, urlToScrape).href;
-                    if (!fullLink.includes('/Authors/') && !fullLink.includes('/Tags/')) {
-                        const categoriesTd = $(element).parent('td').next('td');
-                        const categories = categoriesTd.text().trim().split(' ').filter(cat => cat.length > 0);
-                        storiesOnPage.push({ title, link: fullLink, categories });
+                const $ = cheerio.load(item.html);
+                const a = $('a');
+                if (a.length > 0) {
+                    // Title comes from <cite> if available, else from anchor text
+                    const title = a.find('cite').text().trim() || a.text().trim();
+                    const link = new URL(a.attr('href'), urlToScrape).href;
+
+                    // Categories from the "text" field after the first tab
+                    const text = item.text || '';
+                    const parts = text.split('\t');
+                    const categories = parts.length > 1
+                        ? parts[1].split(' ').filter(Boolean)
+                        : [];
+
+                    if (title && link) {
+                        // Skip author/tag links
+                        if (!link.includes('/Authors/') && !link.includes('/Tags/')) {
+                            storiesOnPage.push({ title, link, categories });
+                        }
                     }
                 }
             } catch (e) {
-                console.warn(`Skipping invalid link.`);
+                console.warn(`Skipping invalid snippet: ${e.message}`);
             }
         });
 
@@ -83,7 +85,10 @@ exports.handler = async () => {
             return { statusCode: 200, body: 'No stories found.' };
         }
 
-        const storiesWithData = storiesOnPage.map(story => ({ ...story, synopsis: '' }));
+        const storiesWithData = storiesOnPage.map(story => ({
+            ...story,
+            synopsis: ''
+        }));
 
         console.log(`Sending ${storiesWithData.length} stories to Cloudflare Worker...`);
         const response = await fetch(`${process.env.CLOUDFLARE_WORKER_URL}/save-stories`, {
