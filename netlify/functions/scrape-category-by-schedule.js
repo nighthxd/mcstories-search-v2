@@ -12,7 +12,7 @@ async function scrapeUrlWithCloudflare(url) {
             'Authorization': `Bearer ${process.env.CLOUDFLARE_API_TOKEN}`,
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ url, "elements": [{ "selector": "tr" }] }),
+        body: JSON.stringify({ url }, {"elements": [{ "selector": "tr" }]}),
     });
 
     if (!response.ok) {
