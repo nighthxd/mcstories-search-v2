@@ -16,12 +16,12 @@ async function scrapeUrlWithCloudflare(url) {
             'Authorization': `Bearer ${process.env.CLOUDFLARE_API_TOKEN}`,
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ url, elements: elements }),
+        body: JSON.stringify({ url, elements: elementsString }),
     });
 
     if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`Failed to scrape ${urlToScrape}. Status: ${response.status}, Details: ${errorText}`);
+        throw new Error(`Failed to scrape ${url}. Status: ${response.status}, Details: ${errorText}`);
     }
 
     const { result } = await response.json();
