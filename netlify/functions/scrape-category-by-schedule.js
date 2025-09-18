@@ -83,6 +83,8 @@ exports.handler = async () => {
         const storiesWithData = [];
         for (const story of storiesOnPage) {
             try {
+                console.log('Waiting 10 seconds...');
+                await delay(10000); 
                 console.log(`Scraping synopsis for: ${story.title}`);
                 const synopsisSelector = [{ selector: "hr + p" }]; 
                 const storyPageResults = await scrapeUrlWithCloudflare(story.link, synopsisSelector);
@@ -108,8 +110,8 @@ exports.handler = async () => {
             }
 
             // 2. PAUSE for 5 seconds before the next request
-            console.log('Waiting 10 seconds...');
-            await delay(10000); 
+            console.log('Waiting 5 seconds...');
+            await delay(5000); 
         }
         
         console.log(`Sending ${storiesWithData.length} stories with synopses to Cloudflare Worker...`);
