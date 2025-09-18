@@ -10,20 +10,20 @@ header, hgroup, main, nav, section, summary {
 
 /* --- Theme Variables (Light Mode Defaults) --- */
 :root {
-    --bg-color: rgb(230, 230, 234);
-    --text-color: black;
-    --heading-color: black;
-    --container-bg: rgb(244, 244, 248);
-    --border-color: #0056b3;
-    --link-color: black;
-    --link-hover-bg: rgba(72, 61, 139, 0.75);
-    --button-bg: #007bff;
-    --button-text: white;
-    --button-hover-bg: #0056b3;
-    --input-border: #ccc;
-    --input-focus-border: #007bff;
-    --placeholder-color: #6c757d;
-    --disclaimer-text: #555;
+    --bg-color: rgb(230, 230, 234); /* From original body background */
+    --text-color: black; /* From original article/body-container color, general links */
+    --heading-color: black; /* Assuming headings are black by default */
+    --container-bg: rgb(244, 244, 248); /* From original article/body-container background */
+    --border-color: #0056b3; /* Existing, used for results/categories borders */
+    --link-color: black; /* From original a:link */
+    --link-hover-bg: rgba(72, 61, 139, 0.75); /* From original a:hover */
+    --button-bg: #007bff; /* Existing blue */
+    --button-text: white; /* Existing */
+    --button-hover-bg: #0056b3; /* Existing */
+    --input-border: #ccc; /* Existing */
+    --input-focus-border: #007bff; /* Existing */
+    --placeholder-color: #6c757d; /* Existing */
+    --disclaimer-text: #555; /* Existing */
 }
 
 /* --- Dark Mode Variables --- */
@@ -55,9 +55,9 @@ body {
     transition: background-color 0.3s, color 0.3s;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    min-height: 100vh;
-    box-sizing: border-box;
+    align-items: center; /* Center content horizontally */
+    min-height: 100vh; /* Ensure body takes at least full viewport height */
+    box-sizing: border-box; /* Include padding in height calculation */
 }
 
 /* Main Content Container */
@@ -66,12 +66,12 @@ body {
     padding: 20px 30px;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    max-width: 900px;
+    max-width: 900px; /* Max width for content */
     width: 100%;
     margin-top: 20px;
     margin-bottom: 20px;
     transition: background-color 0.3s, box-shadow 0.3s;
-    text-align: center;
+    text-align: center; /* Center content within the container */
 }
 
 /* Article Styles (MCStories Header) */
@@ -82,10 +82,9 @@ article#mcstories {
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    max-width: 900px;
+    max-width: 900px; /* Match body-container max-width */
     width: 100%;
     transition: background-color 0.3s, box-shadow 0.3s;
-    position: relative;
 }
 
 article#mcstories h3 {
@@ -140,23 +139,25 @@ section p {
     transition: color 0.3s;
 }
 
+/* Sun icon for light mode */
 #theme-toggle::before {
-    content: '🌙';
+    content: '🌙'; /* Sun emoji */
 }
 
+/* Moon icon for dark mode */
 body.dark-mode #theme-toggle::before {
-    content: '☀';
+    content: '☀'; /* Moon emoji */
 }
 
 
 /* Search Input and Button */
 .search-container {
     display: flex;
-    justify-content: center;
+    justify-content: center; /* Center items horizontally */
     align-items: center;
     margin-bottom: 20px;
-    flex-wrap: wrap;
-    gap: 10px;
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    gap: 10px; /* Space between items */
 }
 
 #search-input {
@@ -164,8 +165,8 @@ body.dark-mode #theme-toggle::before {
     border: 1px solid var(--input-border);
     border-radius: 5px;
     font-size: 1em;
-    flex-grow: 1;
-    max-width: 400px;
+    flex-grow: 1; /* Allow input to grow */
+    max-width: 400px; /* Max width for search input */
     background-color: var(--bg-color);
     color: var(--text-color);
     transition: border-color 0.3s, background-color 0.3s, color 0.3s;
@@ -206,15 +207,15 @@ h3 {
 .category-columns {
     display: flex;
     justify-content: center;
-    flex-wrap: wrap;
-    gap: 20px;
+    flex-wrap: wrap; /* Allow columns to wrap on smaller screens */
+    gap: 20px; /* Space between columns */
     margin-bottom: 20px;
 }
 
 .category-column {
-    flex: 1;
-    min-width: 280px;
-    max-width: 45%;
+    flex: 1; /* Allows columns to take equal width */
+    min-width: 280px; /* Minimum width before wrapping */
+    max-width: 45%; /* Prevent columns from getting too wide */
     background-color: var(--bg-color);
     padding: 15px;
     border-radius: 8px;
@@ -225,7 +226,7 @@ h3 {
 .category-column table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 0;
+    margin-top: 0; /* Override default table margin */
 }
 
 .category-column th,
@@ -233,7 +234,7 @@ h3 {
     padding: 8px;
     border-bottom: 1px solid var(--input-border);
     text-align: left;
-    vertical-align: top;
+    vertical-align: top; /* Align content to the top */
 }
 
 .category-column th {
@@ -243,23 +244,23 @@ h3 {
 }
 
 .category-column td:first-child {
-    width: 70%;
+    width: 70%; /* Category name column takes more width */
 }
 
 .category-column td:nth-child(2),
 .category-column td:nth-child(3) {
-    width: 15%;
+    width: 15%; /* Checkbox columns */
     text-align: center;
 }
 
 .category-column label {
-    display: block;
+    display: block; /* Make label clickable area larger */
     cursor: pointer;
     color: var(--text-color);
 }
 
 .category-column input[type="checkbox"] {
-    transform: scale(1.2);
+    transform: scale(1.2); /* Slightly enlarge checkboxes */
     cursor: pointer;
 }
 
@@ -270,18 +271,18 @@ h3 {
     background-color: var(--bg-color);
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    min-height: 100px;
+    min-height: 100px; /* Ensure it has some height even if empty */
     display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
+    justify-content: center; /* Center "Loading results..." text */
+    align-items: center; /* Center "Loading results..." text */
+    flex-direction: column; /* Stack results vertically */
     transition: background-color 0.3s, box-shadow 0.3s;
 }
 
 #results-container ul {
     list-style: none;
     padding: 0;
-    width: 100%;
+    width: 100%; /* Take full width of results container */
 }
 
 #results-container li {
@@ -291,18 +292,17 @@ h3 {
     margin-bottom: 10px;
     padding: 10px 15px;
     display: flex;
-    flex-direction: column;
-    align-items: center; /* THIS IS THE FIX FOR CENTERING */
+    flex-direction: column; /* Stack story elements vertically */
+    align-items: flex-start; /* Align text to the left */
     transition: background-color 0.3s, border-color 0.3s;
-    text-align: center;
+    text-align: center; /* Center text within each story item */
 }
 
 .story-header {
     display: flex;
     width: 100%;
-    flex-wrap: wrap;
+    flex-wrap: wrap; /* Allow title and categories to wrap */
     align-items: baseline;
-    justify-content: center;
     margin-bottom: 5px;
 }
 
@@ -314,10 +314,8 @@ h3 {
     transition: color 0.3s;
 }
 
-/* THIS IS THE FIX FOR DARK MODE TITLE COLOR */
-body.dark-mode #results-container .story-header a,
-body.dark-mode #results-container .story-header a:visited {
-    color: white;
+body.dark-theme .story-header a {
+    color: #FFFFFF;
 }
 
 .story-header a:hover {
@@ -328,7 +326,7 @@ body.dark-mode #results-container .story-header a:visited {
 .story-categories {
     font-size: 0.9em;
     color: var(--disclaimer-text);
-    white-space: nowrap;
+    white-space: nowrap; /* Keep categories on one line */
 }
 
 .story-synopsis {
@@ -337,14 +335,14 @@ body.dark-mode #results-container .story-header a:visited {
     margin-top: 10px;
     padding-left: 10px;
     border-left: 2px solid var(--border-color);
-    display: none;
-    background-color: var(--container-bg);
+    display: none; /* Hidden by default */
+    background-color: var(--container-bg); /* Slightly different background for synopsis */
     padding: 8px;
     border-radius: 4px;
     margin-top: 5px;
     margin-bottom: 5px;
     transition: background-color 0.3s;
-    text-align: justify;
+    text-align: justify; /* NEW: Justify synopsis text for better readability */
 }
 
 .toggle-synopsis, .read-more-button {
@@ -355,7 +353,7 @@ body.dark-mode #results-container .story-header a:visited {
     cursor: pointer;
     font-size: 0.85em;
     transition: background-color 0.3s, color 0.3s;
-    margin-top: 5px;
+    margin-top: 5px; /* Space between buttons and other content */
 }
 
 .toggle-synopsis {
@@ -368,12 +366,16 @@ body.dark-mode #results-container .story-header a:visited {
 }
 
 .read-more-button {
-    background-color: #28a745;
+    background-color: #28a745; /* Green for Read More */
     color: white;
 }
 
 .read-more-button:hover {
-    background-color: #218838;
+    background-color: #218838; /* Darker green on hover */
+}
+
+article#mcstories {
+    position: relative;
 }
 
 /* Responsive Adjustments */
@@ -385,7 +387,7 @@ body.dark-mode #results-container .story-header a:visited {
     }
 
     .category-column {
-        min-width: 100%;
+        min-width: 100%; /* Stack columns on small screens */
         max-width: 100%;
     }
 
