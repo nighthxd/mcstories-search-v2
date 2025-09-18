@@ -61,7 +61,7 @@ async function handleSearchClick() {
                 li.appendChild(storyHeader);
 
                 // If synopsis exists, create the synopsis div and toggle button
-                if (stories.synopsis && stories.synopsis.trim() !== '') {
+                if (story.synopsis && story.synopsis.trim().length > 0) {
                     const synopsisDiv = document.createElement('div');
                     synopsisDiv.className = 'story-synopsis';
                     synopsisDiv.textContent = story.synopsis;
