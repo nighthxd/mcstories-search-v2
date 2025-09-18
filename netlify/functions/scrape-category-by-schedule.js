@@ -108,8 +108,8 @@ exports.handler = async () => {
             }
 
             // 2. PAUSE for 5 seconds before the next request
-            console.log('Waiting 5 seconds...');
-            await delay(5000); 
+            console.log('Waiting 10 seconds...');
+            await delay(10000); 
         }
         
         console.log(`Sending ${storiesWithData.length} stories with synopses to Cloudflare Worker...`);
