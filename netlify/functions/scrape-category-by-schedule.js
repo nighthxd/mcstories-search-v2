@@ -2,6 +2,9 @@
 const cheerio = require('cheerio');
 const { tags } = require('../../categories');
 
+// 1. Helper function to introduce a delay
+const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+
 // Helper function to scrape a URL using Cloudflare Browser Rendering
 async function scrapeUrlWithCloudflare(urlToScrape, elementSelectors) {
     const { CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN } = process.env;
@@ -9,7 +12,7 @@ async function scrapeUrlWithCloudflare(urlToScrape, elementSelectors) {
 
     const urlData = {
         url: urlToScrape,
-        elements: elementSelectors, // Pass an array of selectors
+        elements: elementSelectors,
     };
 
     const response = await fetch(endpoint, {
@@ -39,7 +42,6 @@ async function scrapeUrlWithCloudflare(urlToScrape, elementSelectors) {
 // Main handler for the scheduled function
 exports.handler = async () => {
     try {
-        // 1. Pick a random category to scrape from the index
         const categoryKeys = Object.keys(tags);
         const randomIndex = Math.floor(Math.random() * categoryKeys.length);
         const categoryToScrape = categoryKeys[randomIndex];
@@ -47,7 +49,6 @@ exports.handler = async () => {
 
         console.log(`Starting scheduled scrape for category: [${categoryToScrape.toUpperCase()}] from ${urlToScrape}`);
 
-        // 2. Scrape the index page to get the list of stories
         const indexSelectors = [{ selector: "tr" }];
         const indexResults = await scrapeUrlWithCloudflare(urlToScrape, indexSelectors);
 
@@ -79,12 +80,10 @@ exports.handler = async () => {
 
         console.log(`Found ${storiesOnPage.length} stories on index page. Now fetching synopses...`);
 
-        // 3. Scrape each individual story page to get its synopsis
         const storiesWithData = [];
         for (const story of storiesOnPage) {
             try {
-                // IMPORTANT: You must identify the correct CSS selector for the synopsis text on mcstories.com.
-                // As of now, it appears to be the first <p> tag after the <hr>. A more robust selector is better if available.
+                console.log(`Scraping synopsis for: ${story.title}`);
                 const synopsisSelector = [{ selector: "hr + p" }]; 
                 const storyPageResults = await scrapeUrlWithCloudflare(story.link, synopsisSelector);
 
@@ -102,15 +101,17 @@ exports.handler = async () => {
 
             } catch (error) {
                 console.error(`Failed to scrape synopsis for ${story.title} at ${story.link}:`, error);
-                // Still add the story but with an empty synopsis so we don't lose the record
                 storiesWithData.push({
                     ...story,
                     synopsis: '' 
                 });
             }
+
+            // 2. PAUSE for 5 seconds before the next request
+            console.log('Waiting 5 seconds...');
+            await delay(5000); 
         }
         
-        // 4. Send the complete data to the Cloudflare Worker
         console.log(`Sending ${storiesWithData.length} stories with synopses to Cloudflare Worker...`);
         const response = await fetch(`${process.env.CLOUDFLARE_WORKER_URL}/save-stories`, {
             method: 'POST',
