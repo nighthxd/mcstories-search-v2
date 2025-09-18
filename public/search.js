@@ -34,7 +34,19 @@ async function handleSearchClick() {
             resultsContainer.innerHTML = '<p>No stories found in the database matching your criteria.</p>';
         } else {
             const ul = document.createElement('ul');
-            stories.forEach(story => {
+            stories.forEach((story, index) => {
+                // --- NEW DETAILED LOGS ---
+                console.log(`--- Checking Story #${index}: "${story.title}" ---`);
+                console.log(`1. Does story.synopsis exist?`, !!story.synopsis);
+                if (story.synopsis) {
+                    console.log(`2. Synopsis raw text:`, `"${story.synopsis}"`);
+                    console.log(`3. Synopsis trimmed length:`, story.synopsis.trim().length);
+                    console.log(`4. Does it pass the 'length > 0' check?`, story.synopsis.trim().length > 0);
+                }
+                console.log(`--------------------------`);
+                // --- END LOGS ---
+
+
                 const li = document.createElement('li');
                 
                 const storyHeader = document.createElement('div');
@@ -70,7 +82,6 @@ async function handleSearchClick() {
                         toggleButton.textContent = isHidden ? 'Hide Synopsis' : 'Show Synopsis';
                     };
                     
-                    // This line was missing
                     li.appendChild(toggleButton);
                 }
                 
