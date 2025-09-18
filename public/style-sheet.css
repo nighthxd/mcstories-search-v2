@@ -133,7 +133,7 @@ section p {
     cursor: pointer;
     color: var(--text-color);
     position: absolute;
-    top: 50%;
+    top: 20px;
     right: 20px;
     z-index: 1000;
     transition: color 0.3s;
@@ -148,6 +148,7 @@ section p {
 body.dark-mode #theme-toggle::before {
     content: '☀'; /* Moon emoji */
 }
+
 
 /* Search Input and Button */
 .search-container {
