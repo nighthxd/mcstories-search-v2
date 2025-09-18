@@ -1,6 +1,5 @@
 // search.js
 document.addEventListener('DOMContentLoaded', () => {
-    // Theme toggle logic
     const themeToggle = document.getElementById('theme-toggle');
     if (themeToggle) {
         themeToggle.addEventListener('click', () => {
@@ -11,31 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.body.classList.add('dark-mode');
         }
     }
-
-    // New function to build the category list on page load
-    populateCategoryList();
 });
-
-function populateCategoryList() {
-    const categoryListContainer = document.getElementById('category-list');
-    if (!categoryListContainer || typeof tags === 'undefined') {
-        return;
-    }
-
-    const ul = document.createElement('ul');
-    // Sort categories alphabetically by their description (the value)
-    const sortedCategories = Object.entries(tags).sort((a, b) => a[1].localeCompare(b[1]));
-
-    sortedCategories.forEach(([tag, description]) => {
-        const li = document.createElement('li');
-        // We'll use checkboxes for include/exclude in a future step, for now just list them
-        li.textContent = description;
-        ul.appendChild(li);
-    });
-
-    categoryListContainer.appendChild(ul);
-}
-
 
 async function handleSearchClick() {
     const searchInput = document.getElementById('search-input');
@@ -43,10 +18,14 @@ async function handleSearchClick() {
     const resultsContainer = document.getElementById('results-container');
     resultsContainer.innerHTML = 'Loading results...';
 
-    // The logic for getting selected categories would go here
-    // For now, it remains the same
+    const includedTags = Array.from(document.querySelectorAll('input[name="include_tag"]:checked')).map(cb => cb.value);
+    const excludedTags = Array.from(document.querySelectorAll('input[name="exclude_tag"]:checked')).map(cb => cb.value);
+
+    // This logic is simplified: we always call the same search function
     const params = new URLSearchParams();
     if (query) params.append('query', query);
+    if (includedTags.length > 0) params.append('categories', includedTags.join(','));
+    if (excludedTags.length > 0) params.append('excludedCategories', excludedTags.join(','));
     
     const apiUrl = `/.netlify/functions/scrape-categories?${params.toString()}`;
 
@@ -55,13 +34,14 @@ async function handleSearchClick() {
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const stories = await response.json();
 
-        resultsContainer.innerHTML = ''; 
+        resultsContainer.innerHTML = ''; // Clear "Loading results..."
 
         if (stories.length === 0) {
             resultsContainer.innerHTML = '<p>No stories found in the database matching your criteria.</p>';
         } else {
             const ul = document.createElement('ul');
             stories.forEach(story => {
+                console.log(story);
                 const li = document.createElement('li');
                 
                 const storyHeader = document.createElement('div');
@@ -80,17 +60,19 @@ async function handleSearchClick() {
                 }
                 li.appendChild(storyHeader);
 
+                // If synopsis exists, create the synopsis div and toggle button
                 if (story.synopsis && story.synopsis.trim().length > 0) {
                     const synopsisDiv = document.createElement('div');
                     synopsisDiv.className = 'story-synopsis';
                     synopsisDiv.textContent = story.synopsis;
-                    synopsisDiv.style.display = 'none';
+                    synopsisDiv.style.display = 'none'; // Initially hidden
                     li.appendChild(synopsisDiv);
 
                     const toggleButton = document.createElement('button');
                     toggleButton.className = 'toggle-synopsis';
                     toggleButton.textContent = 'Show Synopsis';
                     
+                    // The button now only shows/hides the div. No more fetching.
                     toggleButton.onclick = () => {
                         const isHidden = synopsisDiv.style.display === 'none';
                         synopsisDiv.style.display = isHidden ? 'block' : 'none';
