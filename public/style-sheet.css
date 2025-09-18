@@ -137,7 +137,6 @@ section p {
     right: 20px;
     z-index: 1000;
     transition: color 0.3s;
-    transform: translateY(-50%);
 }
 
 /* Sun icon for light mode */
@@ -148,10 +147,6 @@ section p {
 /* Moon icon for dark mode */
 body.dark-mode #theme-toggle::before {
     content: '☀'; /* Moon emoji */
-}
-
-#theme-toggle:hover {
-    background-color: #666;
 }
 
 /* Search Input and Button */
