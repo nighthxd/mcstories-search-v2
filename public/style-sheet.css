@@ -369,13 +369,16 @@ h3 {
     background-color: #218838; /* Darker green on hover */
 }
 
+article#mcstories {
+    position: relative;
+}
+
 /* Responsive Adjustments */
 @media (max-width: 768px) {
     .body-container, article#mcstories {
         padding: 15px;
         margin-left: 10px;
         margin-right: 10px;
-        position: relative;
     }
 
     .category-column {
