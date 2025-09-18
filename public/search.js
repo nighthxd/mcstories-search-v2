@@ -1,14 +1,11 @@
 // search.js
 document.addEventListener('DOMContentLoaded', () => {
+    // Theme toggle logic
     const themeToggle = document.getElementById('theme-toggle');
-    if (themeToggle) {
+    if(themeToggle) {
         themeToggle.addEventListener('click', () => {
             document.body.classList.toggle('dark-mode');
-            localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
         });
-        if (localStorage.getItem('theme') === 'dark') {
-            document.body.classList.add('dark-mode');
-        }
     }
 });
 
@@ -19,13 +16,10 @@ async function handleSearchClick() {
     resultsContainer.innerHTML = 'Loading results...';
 
     const includedTags = Array.from(document.querySelectorAll('input[name="include_tag"]:checked')).map(cb => cb.value);
-    const excludedTags = Array.from(document.querySelectorAll('input[name="exclude_tag"]:checked')).map(cb => cb.value);
-
-    // This logic is simplified: we always call the same search function
+    
     const params = new URLSearchParams();
     if (query) params.append('query', query);
     if (includedTags.length > 0) params.append('categories', includedTags.join(','));
-    if (excludedTags.length > 0) params.append('excludedCategories', excludedTags.join(','));
     
     const apiUrl = `/.netlify/functions/scrape-categories?${params.toString()}`;
 
@@ -34,7 +28,7 @@ async function handleSearchClick() {
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const stories = await response.json();
 
-        resultsContainer.innerHTML = ''; // Clear "Loading results..."
+        resultsContainer.innerHTML = ''; 
 
         if (stories.length === 0) {
             resultsContainer.innerHTML = '<p>No stories found in the database matching your criteria.</p>';
@@ -59,24 +53,24 @@ async function handleSearchClick() {
                 }
                 li.appendChild(storyHeader);
 
-                // If synopsis exists, create the synopsis div and toggle button
                 if (story.synopsis && story.synopsis.trim().length > 0) {
                     const synopsisDiv = document.createElement('div');
                     synopsisDiv.className = 'story-synopsis';
                     synopsisDiv.textContent = story.synopsis;
-                    synopsisDiv.style.display = 'none'; // Initially hidden
+                    synopsisDiv.style.display = 'none';
                     li.appendChild(synopsisDiv);
 
                     const toggleButton = document.createElement('button');
                     toggleButton.className = 'toggle-synopsis';
                     toggleButton.textContent = 'Show Synopsis';
                     
-                    // The button now only shows/hides the div. No more fetching.
                     toggleButton.onclick = () => {
                         const isHidden = synopsisDiv.style.display === 'none';
                         synopsisDiv.style.display = isHidden ? 'block' : 'none';
                         toggleButton.textContent = isHidden ? 'Hide Synopsis' : 'Show Synopsis';
                     };
+                    
+                    // This line was missing
                     li.appendChild(toggleButton);
                 }
                 
