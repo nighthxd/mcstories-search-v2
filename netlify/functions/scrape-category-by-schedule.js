@@ -86,7 +86,7 @@ exports.handler = async () => {
                 console.log('Waiting 10 seconds...');
                 await delay(10000); 
                 console.log(`Scraping synopsis for: ${story.title}`);
-                const synopsisSelector = [{ selector: "hr + p" }]; 
+                const synopsisSelector = [{ selector: "section.synopsis" }]; 
                 const storyPageResults = await scrapeUrlWithCloudflare(story.link, synopsisSelector);
 
                 let synopsis = '';
