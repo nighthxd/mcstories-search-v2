@@ -5,7 +5,7 @@ const { tags } = require('../../categories');
 // Helper function to call the Cloudflare Browser Rendering API
 async function scrapeUrlWithCloudflare(url) {
     const { CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN } = process.env;
-    const endpoint = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/browser-rendering/v1/scrape`;
+    const endpoint = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/browser-rendering/scrape`;
 
     const response = await fetch(endpoint, {
         method: 'POST',
