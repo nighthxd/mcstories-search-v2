@@ -375,6 +375,7 @@ h3 {
         padding: 15px;
         margin-left: 10px;
         margin-right: 10px;
+        position: relative;
     }
 
     .category-column {
