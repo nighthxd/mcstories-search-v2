@@ -41,6 +41,7 @@ async function handleSearchClick() {
         } else {
             const ul = document.createElement('ul');
             stories.forEach(story => {
+                console.log(story);
                 const li = document.createElement('li');
                 
                 const storyHeader = document.createElement('div');
