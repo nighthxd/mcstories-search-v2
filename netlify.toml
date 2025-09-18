@@ -9,4 +9,4 @@
 
 # This section schedules your scraper to run every 5 minutes
 [functions."scrape-category-by-schedule"]
-  schedule = "*/5 * * * *"
+  schedule = "*/15 * * * *"
